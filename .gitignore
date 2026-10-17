@@ -1,0 +1,25 @@
+# OpsPulse .gitignore
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+ENV/
+env/
+node_modules/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Engine & execution memory (local notes)
+memory.md
+
+# OS files
+.DS_Store
+Thumbs.db
