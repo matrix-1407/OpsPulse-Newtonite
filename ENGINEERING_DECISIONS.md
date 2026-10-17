@@ -73,39 +73,56 @@ This entire read → check → update sequence runs inside a single ACID transac
 %%{init: {
   'theme': 'base',
   'themeVariables': {
-    'fontFamily': 'Inter, system-ui, -apple-system, sans-serif'
-  },
-  'sequence': {
-    'actorFontSize': 16,
+    'fontFamily': 'Inter, system-ui, -apple-system, sans-serif',
+    'actorFontSize': 15,
     'actorFontWeight': 700,
-    'noteFontSize': 14,
-    'noteFontWeight': 600,
+    'actorBkg': '#e0e7ff',
+    'actorBorder': '#4338ca',
+    'actorTextColor': '#1e1b4b',
+    'actorLineColor': '#818cf8',
+    'signalColor': '#cbd5e1',
+    'signalTextColor': '#f8fafc',
     'messageFontSize': 14,
     'messageFontWeight': 600,
-    'width': 200,
-    'height': 45,
-    'boxMargin': 10,
-    'messageMargin': 30
+    'noteFontSize': 13,
+    'noteFontWeight': 600,
+    'noteBkgColor': '#fef9c3',
+    'noteBorderColor': '#ca8a04',
+    'noteTextColor': '#713f12',
+    'activationBkgColor': '#c7d2fe',
+    'activationBorderColor': '#4338ca',
+    'width': 220,
+    'height': 48,
+    'boxMargin': 12,
+    'messageMargin': 35
   }
 }}%%
 sequenceDiagram
     autonumber
-    actor Op1 as 👤 Operator 1
-    actor Op2 as 👤 Operator 2
+    participant Op1 as 👤 Operator 1 (Aarav)
+    participant Op2 as 👤 Operator 2 (Rohan)
     participant DB as 🐘 PostgreSQL (work_items)
 
-    Note over Op1, DB: Two operators attempt to claim wi_showcase_01 at the same time
-    Op1->>DB: BEGIN Tx 1; SELECT * WHERE id = 'wi_1' FOR UPDATE;
-    Note over DB: 🔒 Row Lock GRANTED to Tx 1
-    Op2->>DB: BEGIN Tx 2; SELECT * WHERE id = 'wi_1' FOR UPDATE;
-    Note over DB: ⏳ Tx 2 BLOCKED on DB lock
+    Note over Op1, DB: Two operators attempt to claim unassigned item 'wi_1' simultaneously
+    Op1->>DB: BEGIN Tx 1
+    Op1->>DB: SELECT * FROM work_items WHERE id = 'wi_1' FOR UPDATE
+    activate DB
+    Note over DB: 🔒 Row Lock GRANTED to Tx 1<br/>(assignee_id is NULL)
 
-    Op1->>DB: UPDATE SET assignee_id = 'usr_aarav', status = 'INVESTIGATING';
-    Op1->>DB: COMMIT Tx 1;
-    Note over DB: 🔓 Lock RELEASED
+    Op2->>DB: BEGIN Tx 2
+    Op2->>DB: SELECT * FROM work_items WHERE id = 'wi_1' FOR UPDATE
+    Note over DB: ⏳ Tx 2 BLOCKED at database level<br/>waiting for Tx 1 row lock
 
-    Note over DB: 🔒 Tx 2 unblocks & inspects row:<br/>assignee_id is NOT NULL!
-    DB-->>Op2: Returns HTTP 409 Conflict (ALREADY_CLAIMED)
+    Op1->>DB: UPDATE SET assignee_id = 'usr_aarav', status = 'INVESTIGATING'
+    Op1->>DB: COMMIT Tx 1
+    deactivate DB
+    Note over DB: 🔓 Tx 1 Committed — Row Lock RELEASED
+
+    activate DB
+    Note over DB: 🔒 Tx 2 unblocks & inspects updated row:<br/>assignee_id = 'usr_aarav' (Already Claimed)
+    DB-->>Op2: HTTP 409 Conflict (code: ALREADY_CLAIMED)
+    deactivate DB
+    Op2->>DB: ROLLBACK Tx 2
 ```
 
 **Rationale:**
@@ -138,24 +155,43 @@ Network retries are a fundamental reality in distributed systems. Without idempo
 %%{init: {
   'theme': 'base',
   'themeVariables': {
-    'fontSize': '16px',
-    'fontFamily': 'Inter, system-ui, -apple-system, sans-serif'
+    'fontFamily': 'Inter, system-ui, -apple-system, sans-serif',
+    'fontSize': '14px',
+    'lineColor': '#cbd5e1',
+    'textColor': '#f8fafc',
+    'labelTextColor': '#f8fafc',
+    'edgeLabelBackground': '#1e293b',
+    'labelBackgroundColor': '#1e293b',
+    'labelBoxBkgColor': '#1e293b',
+    'stateBkg': '#1e293b',
+    'mainBkg': '#1e293b',
+    'primaryColor': '#1e293b',
+    'transitionLabelColor': '#f8fafc'
   }
 }}%%
 stateDiagram-v2
     direction TB
-    [*] --> TRIAGE : Task Created
+
+    classDef triage fill:#1e293b,stroke:#3b82f6,stroke-width:2.5px,color:#ffffff
+    classDef investigating fill:#2d1b00,stroke:#f59e0b,stroke-width:2.5px,color:#ffffff
+    classDef pending fill:#2e1065,stroke:#a855f7,stroke-width:2.5px,color:#ffffff
+    classDef approved fill:#022c22,stroke:#10b981,stroke-width:2.5px,color:#ffffff
+    classDef resolved fill:#052e16,stroke:#22c55e,stroke-width:2.5px,color:#ffffff
+    classDef closed fill:#1e293b,stroke:#64748b,stroke-width:2.5px,color:#ffffff
+    classDef blocked fill:#450a0a,stroke:#ef4444,stroke-width:2.5px,color:#ffffff
+
+    [*] --> TRIAGE : Ingestion (POST /work-items)
     
     TRIAGE --> INVESTIGATING : Atomic Claim (FOR UPDATE)
-    TRIAGE --> BLOCKED : External Dependency
-    TRIAGE --> CLOSED : Rejected / Duplicate
+    TRIAGE --> BLOCKED : External Blocker
+    TRIAGE --> CLOSED : Duplicate / Rejected
     
-    INVESTIGATING --> PENDING_APPROVAL : Submit for Review
+    INVESTIGATING --> PENDING_APPROVAL : Submit Review (requires_approval=True)
     INVESTIGATING --> RESOLVED : Direct Resolve (requires_approval=False)
-    INVESTIGATING --> BLOCKED : Waiting on External Team
+    INVESTIGATING --> BLOCKED : Dependency Halt
     
-    PENDING_APPROVAL --> APPROVED : Independent Sign-off (RBAC + SoD)
-    PENDING_APPROVAL --> INVESTIGATING : Changes Requested
+    PENDING_APPROVAL --> APPROVED : Independent Sign-off (RBAC & SoD)
+    PENDING_APPROVAL --> INVESTIGATING : Request Changes
     PENDING_APPROVAL --> BLOCKED : Compliance Escalation
     
     APPROVED --> RESOLVED : Complete Resolution
@@ -163,24 +199,32 @@ stateDiagram-v2
     APPROVED --> BLOCKED : Pre-deployment Stop
     
     BLOCKED --> INVESTIGATING : Dependency Cleared
-    BLOCKED --> TRIAGE : Return to Triage
+    BLOCKED --> TRIAGE : Re-queue to Triage
     
     RESOLVED --> CLOSED : Archive & Settle
-    RESOLVED --> INVESTIGATING : Bug Resurfaced (Re-open)
+    RESOLVED --> INVESTIGATING : Regression Re-open
     
     CLOSED --> [*]
 
+    class TRIAGE triage
+    class INVESTIGATING investigating
+    class PENDING_APPROVAL pending
+    class APPROVED approved
+    class RESOLVED resolved
+    class CLOSED closed
+    class BLOCKED blocked
+
     note right of APPROVED
-        <b>Approval Gatekeeper:</b>
-        Transition to RESOLVED requires
-        approval_status == 'APPROVED'.
+        <b>Approval Gatekeeper:</b><br/>
+        Transition to RESOLVED blocked<br/>
+        unless approval_status == APPROVED
     end note
 
     note left of INVESTIGATING
-        <b>Re-open Invalidation:</b>
-        Moving back to INVESTIGATING
-        resets approval_status to PENDING
-        and clears approved_by.
+        <b>Re-open Invalidation:</b><br/>
+        Transitioning back resets<br/>
+        approval_status = PENDING<br/>
+        and clears approved_by
     end note
 ```
 
@@ -222,32 +266,44 @@ FOR UPDATE SKIP LOCKED;
 %%{init: {
   'theme': 'base',
   'themeVariables': {
-    'fontSize': '16px',
-    'fontFamily': 'Inter, system-ui, -apple-system, sans-serif'
+    'fontFamily': 'Inter, system-ui, -apple-system, sans-serif',
+    'fontSize': '15px',
+    'lineColor': '#818cf8',
+    'textColor': '#f8fafc'
   },
   'flowchart': {
-    'nodeSpacing': 30,
-    'rankSpacing': 40
+    'nodeSpacing': 35,
+    'rankSpacing': 45,
+    'curve': 'basis',
+    'htmlLabels': true
   }
 }}%%
 flowchart TD
-    Tx["🚀 API Request ACID Transaction"]
-    WItem["📋 work_items UPDATE"]
-    OJob["📬 outbox_jobs INSERT (status='PENDING')"]
-    
-    Tx -->|Atomically writes both| WItem
-    Tx -->|Atomically writes both| OJob
+    classDef txNode fill:#e0e7ff,stroke:#4338ca,stroke-width:2.5px,color:#1e1b4b,font-weight:bold;
+    classDef entityNode fill:#eff6ff,stroke:#2563eb,stroke-width:2px,color:#1e3a8a;
+    classDef outboxNode fill:#fef3c7,stroke:#d97706,stroke-width:2.5px,color:#78350f,font-weight:bold;
+    classDef workerNode fill:#ede9fe,stroke:#7c3aed,stroke-width:2px,color:#4c1d95;
+    classDef eventNode fill:#ecfdf5,stroke:#059669,stroke-width:2.5px,color:#064e3b,font-weight:bold;
 
-    subgraph Workers ["Horizontal Worker Scaling (Zero Lock Contention)"]
-        Worker1["⚙️ Worker Node 1<br/><b>SELECT ... FOR UPDATE SKIP LOCKED</b><br/>Locks batch 1 (IDs 1-20)"]
-        Worker2["⚙️ Worker Node 2<br/><b>SELECT ... FOR UPDATE SKIP LOCKED</b><br/>Skips batch 1 & locks batch 2 (IDs 21-40)"]
+    Tx["🚀 API Request Handler<br/><b>BEGIN ACID TRANSACTION</b>"]:::txNode
+    WItem[("📋 work_items Table<br/><b>UPDATE status = 'RESOLVED'</b>")]:::entityNode
+    OJob[("📬 outbox_jobs Table<br/><b>INSERT status = 'PENDING'</b><br/>(Atomically committed with work_item)")]:::outboxNode
+
+    Tx -->|"1. Atomically updates entity"| WItem
+    Tx -->|"2. Atomically enqueues event"| OJob
+
+    subgraph Workers ["⚙️ Horizontal Worker Fleet (Zero Lock Contention)"]
+        Worker1["⚙️ Worker Node 1<br/><b>SELECT ... FOR UPDATE SKIP LOCKED</b><br/>Acquires batch 1 (IDs 101-120)"]:::workerNode
+        Worker2["⚙️ Worker Node 2<br/><b>SELECT ... FOR UPDATE SKIP LOCKED</b><br/>Skips batch 1 & locks batch 2 (IDs 121-140)"]:::workerNode
     end
 
-    OJob -.->|Concurrently polled| Worker1
-    OJob -.->|Concurrently polled| Worker2
+    OJob -.->|"Concurrently polled (every 500ms)"| Worker1
+    OJob -.->|"Concurrently polled (every 500ms)"| Worker2
 
-    Worker1 -->|Dispatches Events| EventBus["📡 SSE Stream & Webhooks"]
-    Worker2 -->|Dispatches Events| EventBus
+    EventBus["📡 Event Bus & Live Dispatcher<br/><b>SSE Broadcaster & Webhook Delivery</b>"]:::eventNode
+
+    Worker1 -->|"Dispatches Events 101-120"| EventBus
+    Worker2 -->|"Dispatches Events 121-140"| EventBus
 ```
 
 **Rationale:**
@@ -317,36 +373,47 @@ SELECT pg_try_advisory_xact_lock($computed_key);
 %%{init: {
   'theme': 'base',
   'themeVariables': {
-    'fontFamily': 'Inter, system-ui, -apple-system, sans-serif'
-  },
-  'sequence': {
-    'actorFontSize': 16,
+    'fontFamily': 'Inter, system-ui, -apple-system, sans-serif',
+    'actorFontSize': 15,
     'actorFontWeight': 700,
-    'noteFontSize': 14,
-    'noteFontWeight': 600,
+    'actorBkg': '#e0e7ff',
+    'actorBorder': '#4338ca',
+    'actorTextColor': '#1e1b4b',
+    'actorLineColor': '#818cf8',
+    'signalColor': '#cbd5e1',
+    'signalTextColor': '#f8fafc',
     'messageFontSize': 14,
     'messageFontWeight': 600,
-    'width': 210,
-    'height': 45,
-    'boxMargin': 10,
-    'messageMargin': 30
+    'noteFontSize': 13,
+    'noteFontWeight': 600,
+    'noteBkgColor': '#fef9c3',
+    'noteBorderColor': '#ca8a04',
+    'noteTextColor': '#713f12',
+    'activationBkgColor': '#c7d2fe',
+    'activationBorderColor': '#4338ca',
+    'width': 220,
+    'height': 48,
+    'boxMargin': 12,
+    'messageMargin': 35
   }
 }}%%
 sequenceDiagram
     autonumber
-    actor Client as 🌐 Client
+    participant Client as 🌐 Client
     participant Req1 as 🚀 In-Flight Request 1
     participant Req2 as 🚀 In-Flight Request 2 (Retry)
     participant DB as 🐘 PostgreSQL Advisory Lock
 
     Note over Client, DB: Rapid concurrent duplicate POST with Idempotency-Key: "idem-999"
     Req1->>DB: SELECT pg_try_advisory_xact_lock(hash("idem-999:actor"))
+    activate DB
     Note over DB: 🔒 Lock ACQUIRED = TRUE
     Req2->>DB: SELECT pg_try_advisory_xact_lock(hash("idem-999:actor"))
-    Note over DB: ⛔ Lock NOT Acquired = FALSE
+    Note over DB: ⛔ Lock NOT Acquired = FALSE<br/>(Held by Request 1)
+    deactivate DB
 
     Note over Req1: Executes mutation and inserts into idempotency_keys
-    Req1->>DB: COMMIT (Releases advisory lock);
+    Req1->>DB: COMMIT (Releases advisory lock)
     Req1-->>Client: HTTP 201 Created (ID: wi_1)
 
     Note over Req2: Serialized: Re-reads idempotency table and finds committed result

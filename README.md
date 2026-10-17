@@ -21,7 +21,8 @@ In high-growth engineering and operations organizations, cross-team incident rem
     'primaryColor': '#EEF2FF',
     'primaryTextColor': '#1E1B4B',
     'primaryBorderColor': '#4338CA',
-    'lineColor': '#4338CA',
+    'lineColor': '#818cf8',
+    'textColor': '#f8fafc',
     'secondaryColor': '#F0FDF4',
     'tertiaryColor': '#FEF2F2'
   },
@@ -100,12 +101,30 @@ Operational tasks navigate a strict directed graph. Illegal state transitions ar
 %%{init: {
   'theme': 'base',
   'themeVariables': {
-    'fontSize': '16px',
-    'fontFamily': 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif'
+    'fontFamily': 'Inter, system-ui, -apple-system, sans-serif',
+    'fontSize': '14px',
+    'lineColor': '#cbd5e1',
+    'textColor': '#f8fafc',
+    'labelTextColor': '#f8fafc',
+    'edgeLabelBackground': '#1e293b',
+    'labelBackgroundColor': '#1e293b',
+    'labelBoxBkgColor': '#1e293b',
+    'stateBkg': '#1e293b',
+    'mainBkg': '#1e293b',
+    'primaryColor': '#1e293b',
+    'transitionLabelColor': '#f8fafc'
   }
 }}%%
 stateDiagram-v2
     direction TB
+
+    classDef triage fill:#1e293b,stroke:#3b82f6,stroke-width:2.5px,color:#ffffff
+    classDef investigating fill:#2d1b00,stroke:#f59e0b,stroke-width:2.5px,color:#ffffff
+    classDef pending fill:#2e1065,stroke:#a855f7,stroke-width:2.5px,color:#ffffff
+    classDef approved fill:#022c22,stroke:#10b981,stroke-width:2.5px,color:#ffffff
+    classDef resolved fill:#052e16,stroke:#22c55e,stroke-width:2.5px,color:#ffffff
+    classDef closed fill:#1e293b,stroke:#64748b,stroke-width:2.5px,color:#ffffff
+    classDef blocked fill:#450a0a,stroke:#ef4444,stroke-width:2.5px,color:#ffffff
 
     [*] --> TRIAGE : Task Created (POST /work-items)
     
@@ -113,17 +132,17 @@ stateDiagram-v2
     TRIAGE --> BLOCKED : External Dependency / Impediment
     TRIAGE --> CLOSED : Marked as Duplicate / Rejected
     
-    INVESTIGATING --> PENDING_APPROVAL : Submit for Peer Review (requires_approval=True)
-    INVESTIGATING --> RESOLVED : Direct Resolution (requires_approval=False)
-    INVESTIGATING --> BLOCKED : Escalation / Waiting on Vendor
+    INVESTIGATING --> PENDING_APPROVAL : Submit Review (requires_approval=True)
+    INVESTIGATING --> RESOLVED : Direct Resolve (requires_approval=False)
+    INVESTIGATING --> BLOCKED : Escalation / Impediment
     
-    PENDING_APPROVAL --> APPROVED : Independent Sign-off (RBAC + Separation of Duties)
-    PENDING_APPROVAL --> INVESTIGATING : Revision Requested / Push Back
-    PENDING_APPROVAL --> BLOCKED : Escalated to Compliance
+    PENDING_APPROVAL --> APPROVED : Independent Sign-off (RBAC & SoD)
+    PENDING_APPROVAL --> INVESTIGATING : Revision Requested
+    PENDING_APPROVAL --> BLOCKED : Compliance Escalation
     
     APPROVED --> RESOLVED : Complete Execution & Mark Resolved
-    APPROVED --> INVESTIGATING : Re-opened for Investigation (Approval Reset to PENDING)
-    APPROVED --> BLOCKED : Pre-deployment Infrastructure Halt
+    APPROVED --> INVESTIGATING : Re-open (Resets Approval to PENDING)
+    APPROVED --> BLOCKED : Pre-deployment Stop
     
     BLOCKED --> INVESTIGATING : Dependency Cleared
     BLOCKED --> TRIAGE : Re-queue to Triage
@@ -133,19 +152,25 @@ stateDiagram-v2
     
     CLOSED --> [*]
 
+    class TRIAGE triage
+    class INVESTIGATING investigating
+    class PENDING_APPROVAL pending
+    class APPROVED approved
+    class RESOLVED resolved
+    class CLOSED closed
+    class BLOCKED blocked
+
     note right of APPROVED
-        <b>Approval Gatekeeper:</b>
-        Transition to RESOLVED is blocked
-        (HTTP 422 APPROVAL_GATE_LOCKED)
-        unless approval_status == 'APPROVED'.
+        <b>Approval Gatekeeper:</b><br/>
+        Transition to RESOLVED blocked<br/>
+        unless approval_status == APPROVED
     end note
 
     note left of INVESTIGATING
-        <b>Re-open Invalidation:</b>
-        Transitioning back to INVESTIGATING
-        atomically wipes prior approvals:
-        approval_status = 'PENDING',
-        approved_by = NULL, approved_at = NULL.
+        <b>Re-open Invalidation:</b><br/>
+        Transitioning back resets<br/>
+        approval_status = PENDING<br/>
+        and clears approved_by
     end note
 ```
 
@@ -161,15 +186,24 @@ When multiple operators attempt to claim the same unassigned incident simultaneo
 %%{init: {
   'theme': 'base',
   'themeVariables': {
-    'fontFamily': 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif'
-  },
-  'sequence': {
-    'actorFontSize': 17,
+    'fontFamily': 'Inter, system-ui, -apple-system, sans-serif',
+    'actorFontSize': 15,
     'actorFontWeight': 700,
-    'noteFontSize': 15,
-    'noteFontWeight': 600,
-    'messageFontSize': 15,
+    'actorBkg': '#e0e7ff',
+    'actorBorder': '#4338ca',
+    'actorTextColor': '#1e1b4b',
+    'actorLineColor': '#818cf8',
+    'signalColor': '#cbd5e1',
+    'signalTextColor': '#f8fafc',
+    'messageFontSize': 14,
     'messageFontWeight': 600,
+    'noteFontSize': 13,
+    'noteFontWeight': 600,
+    'noteBkgColor': '#fef9c3',
+    'noteBorderColor': '#ca8a04',
+    'noteTextColor': '#713f12',
+    'activationBkgColor': '#c7d2fe',
+    'activationBorderColor': '#4338ca',
     'width': 220,
     'height': 48,
     'boxMargin': 12,
@@ -178,41 +212,41 @@ When multiple operators attempt to claim the same unassigned incident simultaneo
 }}%%
 sequenceDiagram
     autonumber
-    actor Op1 as 👤 Operator 1 (Aarav)
-    actor Op2 as 👤 Operator 2 (Rohan)
+    participant Op1 as 👤 Operator 1 (Aarav)
+    participant Op2 as 👤 Operator 2 (Rohan)
     participant API as 🚀 FastAPI Server
     participant DB as 🐘 PostgreSQL 16
 
     Note over Op1, Op2: Simultaneous Claim Request for wi_showcase_01
     par Operator 1 clicks Claim
         Op1->>API: POST /api/v1/work-items/wi_showcase_01/claim
-        API->>DB: BEGIN TRANSACTION;
-        API->>DB: SELECT * FROM work_items<br/>WHERE id = 'wi_showcase_01'<br/>FOR UPDATE;
+        API->>DB: BEGIN TRANSACTION
+        API->>DB: SELECT * FROM work_items WHERE id = 'wi_showcase_01' FOR UPDATE
         activate DB
         Note over DB: 🔒 Row Lock ACQUIRED by Tx 1<br/>(assignee_id is NULL)
     and Operator 2 clicks Claim
         Op2->>API: POST /api/v1/work-items/wi_showcase_01/claim
-        API->>DB: BEGIN TRANSACTION;
-        API->>DB: SELECT * FROM work_items<br/>WHERE id = 'wi_showcase_01'<br/>FOR UPDATE;
-        Note over DB: ⏳ Tx 2 BLOCKS at DB level<br/>waiting for row lock
+        API->>DB: BEGIN TRANSACTION
+        API->>DB: SELECT * FROM work_items WHERE id = 'wi_showcase_01' FOR UPDATE
+        Note over DB: ⏳ Tx 2 BLOCKS at DB level<br/>waiting for Tx 1 row lock
     end
 
     Note over API, DB: Tx 1 applies mutations and commits
-    API->>DB: UPDATE work_items<br/>SET assignee_id = 'usr_aarav',<br/>status = 'INVESTIGATING', version = version + 1;
-    API->>DB: INSERT INTO audit_events (action = 'CLAIMED');
-    API->>DB: INSERT INTO outbox_jobs (event = 'work_item_claimed');
-    API->>DB: COMMIT;
+    API->>DB: UPDATE work_items SET assignee_id = 'usr_aarav', status = 'INVESTIGATING', version = version + 1
+    API->>DB: INSERT INTO audit_events (action = 'CLAIMED')
+    API->>DB: INSERT INTO outbox_jobs (event = 'work_item_claimed')
+    API->>DB: COMMIT
     deactivate DB
     Note over DB: 🔓 Lock RELEASED on commit
 
     API-->>Op1: HTTP 200 OK (Claimed, Version: 2)
 
     activate DB
-    Note over DB: 🔒 Tx 2 unblocks and reads committed row:<br/>assignee_id = 'usr_aarav' (NOT NULL!)
-    API->>DB: ROLLBACK;
+    Note over DB: 🔒 Tx 2 unblocks & reads committed row:<br/>assignee_id = 'usr_aarav' (Already Claimed)
+    API->>DB: ROLLBACK
     deactivate DB
 
-    API-->>Op2: HTTP 409 Conflict<br/>(code: ALREADY_CLAIMED)
+    API-->>Op2: HTTP 409 Conflict (code: ALREADY_CLAIMED)
 ```
 
 ---
@@ -225,15 +259,24 @@ OpsPulse eliminates the "last-write-wins" hazard. Every mutating request require
 %%{init: {
   'theme': 'base',
   'themeVariables': {
-    'fontFamily': 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif'
-  },
-  'sequence': {
-    'actorFontSize': 17,
+    'fontFamily': 'Inter, system-ui, -apple-system, sans-serif',
+    'actorFontSize': 15,
     'actorFontWeight': 700,
-    'noteFontSize': 15,
-    'noteFontWeight': 600,
-    'messageFontSize': 15,
+    'actorBkg': '#e0e7ff',
+    'actorBorder': '#4338ca',
+    'actorTextColor': '#1e1b4b',
+    'actorLineColor': '#818cf8',
+    'signalColor': '#cbd5e1',
+    'signalTextColor': '#f8fafc',
+    'messageFontSize': 14,
     'messageFontWeight': 600,
+    'noteFontSize': 13,
+    'noteFontWeight': 600,
+    'noteBkgColor': '#fef9c3',
+    'noteBorderColor': '#ca8a04',
+    'noteTextColor': '#713f12',
+    'activationBkgColor': '#c7d2fe',
+    'activationBorderColor': '#4338ca',
     'width': 220,
     'height': 48,
     'boxMargin': 12,
@@ -242,25 +285,31 @@ OpsPulse eliminates the "last-write-wins" hazard. Every mutating request require
 }}%%
 sequenceDiagram
     autonumber
-    actor EditorA as 👤 Operator A
-    actor EditorB as 👤 Operator B
+    participant EditorA as 👤 Operator A
+    participant EditorB as 👤 Operator B
     participant API as 🚀 FastAPI Server
     participant DB as 🐘 PostgreSQL 16
 
-    Note over EditorA, EditorB: Both load Item #wi_101 at Version 1
+    Note over EditorA, EditorB: Both load Item #wi_101 at current Version: 1
     EditorA->>API: PATCH /work-items/wi_101<br/>{expected_version: 1, priority: 'CRITICAL'}
-    API->>DB: UPDATE work_items<br/>SET priority = 'CRITICAL', version = version + 1<br/>WHERE id = 'wi_101' AND version = 1<br/>RETURNING *;
-    Note over DB: Row matched (version == 1)<br/>Updated to version 2
+    API->>DB: UPDATE work_items SET priority = 'CRITICAL', version = version + 1 WHERE id = 'wi_101' AND version = 1 RETURNING *
+    activate DB
+    Note over DB: ✅ Row matched (version == 1)<br/>Updated version to 2
     DB-->>API: 1 row returned (version = 2)
+    deactivate DB
     API-->>EditorA: HTTP 200 OK (Item updated, Version: 2)
 
     Note over EditorB: Operator B submits edit with stale expected_version: 1
     EditorB->>API: PATCH /work-items/wi_101<br/>{expected_version: 1, title: 'Updated Title'}
-    API->>DB: UPDATE work_items<br/>SET title = 'Updated Title', version = version + 1<br/>WHERE id = 'wi_101' AND version = 1<br/>RETURNING *;
-    Note over DB: 0 rows matched!<br/>(DB version is 2, expected was 1)
+    API->>DB: UPDATE work_items SET title = 'Updated Title', version = version + 1 WHERE id = 'wi_101' AND version = 1 RETURNING *
+    activate DB
+    Note over DB: ❌ 0 rows matched!<br/>(DB version is 2, expected was 1)
     DB-->>API: 0 rows returned
-    API->>DB: SELECT * FROM work_items WHERE id = 'wi_101';
+    deactivate DB
+    API->>DB: SELECT * FROM work_items WHERE id = 'wi_101'
+    activate DB
     DB-->>API: Returns live current row (version = 2, priority = 'CRITICAL')
+    deactivate DB
     API-->>EditorB: HTTP 409 Conflict<br/>(STALE_VERSION_CONFLICT + current_state JSON)
 ```
 
@@ -274,15 +323,24 @@ Network retries or rapid double-clicks can create concurrent in-flight requests 
 %%{init: {
   'theme': 'base',
   'themeVariables': {
-    'fontFamily': 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif'
-  },
-  'sequence': {
-    'actorFontSize': 17,
+    'fontFamily': 'Inter, system-ui, -apple-system, sans-serif',
+    'actorFontSize': 15,
     'actorFontWeight': 700,
-    'noteFontSize': 15,
-    'noteFontWeight': 600,
-    'messageFontSize': 15,
+    'actorBkg': '#e0e7ff',
+    'actorBorder': '#4338ca',
+    'actorTextColor': '#1e1b4b',
+    'actorLineColor': '#818cf8',
+    'signalColor': '#cbd5e1',
+    'signalTextColor': '#f8fafc',
+    'messageFontSize': 14,
     'messageFontWeight': 600,
+    'noteFontSize': 13,
+    'noteFontWeight': 600,
+    'noteBkgColor': '#fef9c3',
+    'noteBorderColor': '#ca8a04',
+    'noteTextColor': '#713f12',
+    'activationBkgColor': '#c7d2fe',
+    'activationBorderColor': '#4338ca',
     'width': 220,
     'height': 48,
     'boxMargin': 12,
@@ -291,29 +349,33 @@ Network retries or rapid double-clicks can create concurrent in-flight requests 
 }}%%
 sequenceDiagram
     autonumber
-    actor Client as 🌐 Client Browser / Gateway
+    participant Client as 🌐 Client Browser / Gateway
     participant API as 🚀 FastAPI Server
-    participant DB as 🐘 PostgreSQL 16
+    participant DB as 🐘 PostgreSQL Advisory Lock
 
-    Note over Client, DB: Rapid Double-Click / Network Retry with Idempotency-Key: 'req-abc-123'
+    Note over Client, DB: Rapid Double-Click / Retry with Idempotency-Key: 'req-abc-123'
     par Request 1 Arrives
-        Client->>API: POST /work-items<br/>(Idempotency-Key: 'req-abc-123')
-        API->>DB: SELECT pg_try_advisory_xact_lock(<br/>hash('req-abc-123:usr_aarav'));
+        Client->>API: POST /work-items (Idempotency-Key: 'req-abc-123')
+        API->>DB: SELECT pg_try_advisory_xact_lock(hash('req-abc-123:usr_aarav'))
+        activate DB
         Note over DB: 🔒 Lock ACQUIRED = TRUE
-        API->>DB: SELECT * FROM idempotency_keys<br/>WHERE key = 'req-abc-123';
+        API->>DB: SELECT * FROM idempotency_keys WHERE key = 'req-abc-123'
         Note over DB: Cache Miss (First Execution)
-        API->>DB: INSERT INTO work_items ...;
-        API->>DB: INSERT INTO idempotency_keys ...;
-        API->>DB: COMMIT (Auto-releases Advisory Lock);
+        API->>DB: INSERT INTO work_items ...
+        API->>DB: INSERT INTO idempotency_keys ...
+        API->>DB: COMMIT (Auto-releases Advisory Lock)
+        deactivate DB
         API-->>Client: HTTP 201 Created (ID: wi_999)
     and Request 2 Arrives (Concurrent In-Flight Retry)
-        Client->>API: POST /work-items<br/>(Idempotency-Key: 'req-abc-123')
-        API->>DB: SELECT pg_try_advisory_xact_lock(<br/>hash('req-abc-123:usr_aarav'));
+        Client->>API: POST /work-items (Idempotency-Key: 'req-abc-123')
+        API->>DB: SELECT pg_try_advisory_xact_lock(hash('req-abc-123:usr_aarav'))
+        activate DB
         Note over DB: ⛔ Lock NOT Acquired = FALSE<br/>(Held by Request 1)
+        deactivate DB
         Note over API: Serialized: Waits for Request 1 to commit
-        API->>DB: SELECT * FROM idempotency_keys<br/>WHERE key = 'req-abc-123';
+        API->>DB: SELECT * FROM idempotency_keys WHERE key = 'req-abc-123'
         Note over DB: Cache HIT! Returns committed response
-        API-->>Client: HTTP 201 Created<br/>(X-Idempotent-Replay: true, ID: wi_999)
+        API-->>Client: HTTP 201 Created (X-Idempotent-Replay: true, ID: wi_999)
     end
 ```
 
@@ -327,15 +389,24 @@ OpsPulse avoids the dual-write hazard by writing events to an `outbox_jobs` tabl
 %%{init: {
   'theme': 'base',
   'themeVariables': {
-    'fontFamily': 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif'
-  },
-  'sequence': {
-    'actorFontSize': 17,
+    'fontFamily': 'Inter, system-ui, -apple-system, sans-serif',
+    'actorFontSize': 15,
     'actorFontWeight': 700,
-    'noteFontSize': 15,
-    'noteFontWeight': 600,
-    'messageFontSize': 15,
+    'actorBkg': '#e0e7ff',
+    'actorBorder': '#4338ca',
+    'actorTextColor': '#1e1b4b',
+    'actorLineColor': '#818cf8',
+    'signalColor': '#cbd5e1',
+    'signalTextColor': '#f8fafc',
+    'messageFontSize': 14,
     'messageFontWeight': 600,
+    'noteFontSize': 13,
+    'noteFontWeight': 600,
+    'noteBkgColor': '#fef9c3',
+    'noteBorderColor': '#ca8a04',
+    'noteTextColor': '#713f12',
+    'activationBkgColor': '#c7d2fe',
+    'activationBorderColor': '#4338ca',
     'width': 220,
     'height': 48,
     'boxMargin': 12,
@@ -351,23 +422,27 @@ sequenceDiagram
     participant EventBus as 📡 SSE / Webhook Dispatcher
 
     Note over MutatingAPI, DB: Atomic Business Transaction
-    MutatingAPI->>DB: BEGIN TRANSACTION;
-    MutatingAPI->>DB: UPDATE work_items SET status = 'RESOLVED' ...;
-    MutatingAPI->>DB: INSERT INTO outbox_jobs (event_type, payload)<br/>VALUES ('resolved', {...});
-    MutatingAPI->>DB: COMMIT;
-    Note over DB: Both record and outbox event are guaranteed committed together!
+    MutatingAPI->>DB: BEGIN TRANSACTION
+    MutatingAPI->>DB: UPDATE work_items SET status = 'RESOLVED' ...
+    MutatingAPI->>DB: INSERT INTO outbox_jobs (event_type, payload) VALUES ('resolved', {...})
+    MutatingAPI->>DB: COMMIT
+    Note over DB: ✅ Both entity mutation & outbox event<br/>are guaranteed committed together in one atomic Tx!
 
     Note over Worker1, Worker2: Distributed Horizontal Outbox Processing
     par Worker 1 Polls
-        Worker1->>DB: SELECT id FROM outbox_jobs<br/>WHERE status = 'PENDING'<br/>LIMIT 10 FOR UPDATE SKIP LOCKED;
-        Note over DB: Locks Jobs [101, 102] for Worker 1
-        Worker1->>EventBus: Dispatch Event 101, 102
-        Worker1->>DB: UPDATE outbox_jobs SET status = 'COMPLETED'<br/>WHERE id IN (101, 102);
+        Worker1->>DB: SELECT id FROM outbox_jobs WHERE status = 'PENDING' ORDER BY next_attempt_at ASC LIMIT 10 FOR UPDATE SKIP LOCKED
+        activate DB
+        Note over DB: 🔒 Locks Jobs [101, 102] for Worker 1
+        Worker1->>EventBus: Dispatch Events [101, 102]
+        Worker1->>DB: UPDATE outbox_jobs SET status = 'COMPLETED' WHERE id IN (101, 102)
+        deactivate DB
     and Worker 2 Polls Simultaneously
-        Worker2->>DB: SELECT id FROM outbox_jobs<br/>WHERE status = 'PENDING'<br/>LIMIT 10 FOR UPDATE SKIP LOCKED;
-        Note over DB: Skips Jobs [101, 102] &rarr;<br/>Locks Jobs [103, 104] for Worker 2
-        Worker2->>EventBus: Dispatch Event 103, 104
-        Worker2->>DB: UPDATE outbox_jobs SET status = 'COMPLETED'<br/>WHERE id IN (103, 104);
+        Worker2->>DB: SELECT id FROM outbox_jobs WHERE status = 'PENDING' ORDER BY next_attempt_at ASC LIMIT 10 FOR UPDATE SKIP LOCKED
+        activate DB
+        Note over DB: ⏩ Skips Jobs [101, 102] &rarr;<br/>🔒 Locks Jobs [103, 104] for Worker 2
+        Worker2->>EventBus: Dispatch Events [103, 104]
+        Worker2->>DB: UPDATE outbox_jobs SET status = 'COMPLETED' WHERE id IN (103, 104)
+        deactivate DB
     end
 ```
 
