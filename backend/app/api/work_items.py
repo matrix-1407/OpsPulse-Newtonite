@@ -16,6 +16,7 @@ from app.domain.models import (
 )
 from app.middleware.auth import ActorContext, get_current_actor
 from app.middleware.idempotency import (
+    acquire_idempotency_lock,
     check_idempotency_key,
     compute_request_hash,
     make_idempotent_replay_response,
@@ -123,6 +124,9 @@ async def claim_work_item(
 
     if idempotency_key:
         async with get_db_cursor(commit=False) as cur:
+            # HARDEN: Acquire pg_try_advisory_xact_lock before reading idempotency table
+            # so concurrent identical retries are serialized at DB level (no TOCTOU race).
+            await acquire_idempotency_lock(cur, idempotency_key, actor.user_id)
             cached = await check_idempotency_key(cur, idempotency_key, actor.user_id, endpoint, req_hash)
             if cached:
                 return make_idempotent_replay_response(cached[0], cached[1])
@@ -159,6 +163,7 @@ async def transition_work_item(
 
     if idempotency_key:
         async with get_db_cursor(commit=False) as cur:
+            await acquire_idempotency_lock(cur, idempotency_key, actor.user_id)
             cached = await check_idempotency_key(cur, idempotency_key, actor.user_id, endpoint, req_hash)
             if cached:
                 return make_idempotent_replay_response(cached[0], cached[1])
@@ -195,6 +200,7 @@ async def approve_work_item(
 
     if idempotency_key:
         async with get_db_cursor(commit=False) as cur:
+            await acquire_idempotency_lock(cur, idempotency_key, actor.user_id)
             cached = await check_idempotency_key(cur, idempotency_key, actor.user_id, endpoint, req_hash)
             if cached:
                 return make_idempotent_replay_response(cached[0], cached[1])

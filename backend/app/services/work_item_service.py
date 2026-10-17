@@ -452,17 +452,42 @@ async def transition_work_item(
                 from_version = item["version"]
                 to_version = from_version + 1
 
-                await cur.execute(
-                    """
-                    UPDATE work_items
-                    SET status = %s,
-                        version = %s,
-                        updated_at = NOW()
-                    WHERE id = %s
-                    RETURNING *;
-                    """,
-                    (target_status, to_version, work_item_id),
+                # HARDEN: If item is being re-opened to INVESTIGATING from PENDING_APPROVAL
+                # or APPROVED, invalidate any prior approval so a stale APPROVED status
+                # cannot persist and bypass the approval gate on the next resolve attempt.
+                approval_reset = (
+                    target_status == WorkItemStatus.INVESTIGATING.value
+                    and current_status in (WorkItemStatus.PENDING_APPROVAL.value, WorkItemStatus.APPROVED.value)
+                    and item["requires_approval"]
                 )
+
+                if approval_reset:
+                    await cur.execute(
+                        """
+                        UPDATE work_items
+                        SET status = %s,
+                            approval_status = 'PENDING',
+                            approved_by_id = NULL,
+                            approved_at = NULL,
+                            version = %s,
+                            updated_at = NOW()
+                        WHERE id = %s
+                        RETURNING *;
+                        """,
+                        (target_status, to_version, work_item_id),
+                    )
+                else:
+                    await cur.execute(
+                        """
+                        UPDATE work_items
+                        SET status = %s,
+                            version = %s,
+                            updated_at = NOW()
+                        WHERE id = %s
+                        RETURNING *;
+                        """,
+                        (target_status, to_version, work_item_id),
+                    )
                 updated_item = await cur.fetchone()
 
                 # Audit event
@@ -652,3 +677,24 @@ async def get_audit_events(work_item_id: str) -> List[AuditEventResponse]:
         rows = await cur.fetchall()
 
     return [AuditEventResponse(**dict(r)) for r in rows]
+
+
+async def delete_benchmark_work_items(tag: str) -> int:
+    """
+    HARDEN (Benchmark Cleanup): Delete all work items created by benchmark runs
+    identified by a metadata tag. Returns the count of deleted rows.
+    Uses a single parameterized DELETE for atomicity and index efficiency.
+    """
+    async with get_db_connection() as conn:
+        async with conn.transaction():
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    """
+                    DELETE FROM work_items
+                    WHERE metadata->>'benchmark_tag' = %s
+                    RETURNING id;
+                    """,
+                    (tag,),
+                )
+                deleted_rows = await cur.fetchall()
+    return len(deleted_rows)

@@ -210,6 +210,22 @@ async def verify():
 
         # Part B: Separation of Duties Enforcement
         print(f"\n Sub-check: Separation of Duties on Approvals...")
+        # Reset wi_showcase_04 to known test state so verification is repeatable
+        async with get_db_cursor(commit=True) as cur:
+            await cur.execute(
+                """
+                UPDATE work_items
+                SET status = 'PENDING_APPROVAL',
+                    approval_status = 'PENDING',
+                    approved_by_id = NULL,
+                    approved_at = NULL,
+                    assignee_id = 'usr_rohan',
+                    created_by_id = 'usr_aarav',
+                    version = 4
+                WHERE id = 'wi_showcase_04';
+                """
+            )
+
         # wi_showcase_04 is in team_infra: created by usr_aarav, assigned to usr_rohan (Lead)
         # 1. Self-approval violation: usr_rohan is Team Lead, but is the current assignee!
         # Must pass RBAC and fail on SEPARATION_OF_DUTIES_VIOLATION.

@@ -19,6 +19,44 @@ def compute_request_hash(endpoint: str, body_data: Any) -> str:
     return hashlib.sha256(payload_str.encode("utf-8")).hexdigest()
 
 
+def _idempotency_advisory_key(idempotency_key: str, actor_id: str) -> int:
+    """
+    Convert (idempotency_key, actor_id) into a stable 64-bit integer for
+    pg_try_advisory_xact_lock. Uses first 8 bytes of SHA-256 so it fits in bigint.
+    """
+    raw = hashlib.sha256(f"{idempotency_key}:{actor_id}".encode()).digest()
+    # Interpret first 8 bytes as a signed 64-bit integer (big-endian)
+    value = int.from_bytes(raw[:8], "big", signed=True)
+    return value
+
+
+async def acquire_idempotency_lock(
+    cur: psycopg.AsyncCursor,
+    idempotency_key: Optional[str],
+    actor_id: str,
+) -> bool:
+    """
+    HARDEN (In-flight Idempotency Race):
+    Acquire a PostgreSQL transaction-scoped advisory lock keyed on (idempotency_key, actor_id).
+    This ensures only one concurrent request with the same idempotency key can hold the lock
+    at a time, serializing them at the DB level and eliminating the TOCTOU window between the
+    idempotency check SELECT and the eventual INSERT.
+
+    Returns True if the lock was acquired (proceed), False if another concurrent request already
+    holds the lock (this request should wait/retry at the application layer or simply re-check).
+    If idempotency_key is None, always returns True (no lock needed).
+    """
+    if not idempotency_key:
+        return True
+
+    lock_key = _idempotency_advisory_key(idempotency_key, actor_id)
+    # pg_try_advisory_xact_lock is transaction-scoped: auto-released on commit or rollback.
+    # Returns TRUE if lock acquired, FALSE if already held by another transaction.
+    await cur.execute("SELECT pg_try_advisory_xact_lock(%s) AS acquired;", (lock_key,))
+    row = await cur.fetchone()
+    return bool(row["acquired"]) if row else False
+
+
 async def check_idempotency_key(
     cur: psycopg.AsyncCursor,
     idempotency_key: Optional[str],
