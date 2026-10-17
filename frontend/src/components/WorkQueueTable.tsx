@@ -33,11 +33,11 @@ export const WorkQueueTable: React.FC<WorkQueueTableProps> = ({
   isLoading,
 }) => {
   return (
-    <div className="flex flex-col flex-1 min-h-0 bg-white">
+    <div className="flex flex-col flex-1 min-h-0 bg-white dark:bg-[#0E1526] transition-colors duration-200">
       {/* Table Container */}
       <div className="flex-1 overflow-auto">
         <table className="w-full text-left border-collapse text-xs">
-          <thead className="sticky top-0 z-10 bg-slate-50/90 backdrop-blur-sm border-b border-slate-200 text-slate-500 font-mono text-[11px] uppercase tracking-wider">
+          <thead className="sticky top-0 z-10 bg-slate-50/90 dark:bg-slate-800/90 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-mono text-[11px] uppercase tracking-wider">
             <tr>
               <th className="py-3 px-4 font-semibold">ID</th>
               <th className="py-3 px-4 font-semibold">Version</th>
@@ -49,10 +49,10 @@ export const WorkQueueTable: React.FC<WorkQueueTableProps> = ({
               <th className="py-3 px-4 font-semibold text-right">Updated</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 font-sans">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 font-sans">
             {isLoading && items.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-16 text-center text-slate-500 font-mono">
+                <td colSpan={8} className="py-16 text-center text-slate-500 dark:text-slate-400 font-mono">
                   <div className="inline-flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping" />
                     Executing Keyset B-Tree Index Seek...
@@ -61,7 +61,7 @@ export const WorkQueueTable: React.FC<WorkQueueTableProps> = ({
               </tr>
             ) : items.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-20 text-center text-slate-400 font-mono">
+                <td colSpan={8} className="py-20 text-center text-slate-400 dark:text-slate-500 font-mono">
                   No work items match current filter criteria.
                 </td>
               </tr>
@@ -74,18 +74,18 @@ export const WorkQueueTable: React.FC<WorkQueueTableProps> = ({
                     onClick={() => onSelectItem(item)}
                     className={`cursor-pointer transition-colors ${
                       isSelected
-                        ? 'bg-blue-50/70 border-l-2 border-l-blue-600'
-                        : 'hover:bg-slate-50/80'
+                        ? 'bg-blue-50/70 dark:bg-blue-950/40 border-l-2 border-l-blue-600'
+                        : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/50'
                     }`}
                   >
                     {/* Item ID */}
-                    <td className="py-3.5 px-4 font-mono text-slate-500 font-medium whitespace-nowrap">
+                    <td className="py-3.5 px-4 font-mono text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
                       {item.id}
                     </td>
 
                     {/* Version Badge (OCC) */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                         v{item.version}
                       </span>
                     </td>
@@ -93,12 +93,12 @@ export const WorkQueueTable: React.FC<WorkQueueTableProps> = ({
                     {/* Title & Approval Requirement */}
                     <td className="py-3.5 px-4 max-w-md">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-slate-900 truncate max-w-sm">
+                        <span className="font-semibold text-slate-900 dark:text-slate-100 truncate max-w-sm">
                           {item.title}
                         </span>
                         {item.requires_approval && (
                           <span
-                            className="inline-flex items-center text-[10px] font-mono font-medium text-violet-700 bg-violet-50 px-1.5 py-0.5 rounded border border-violet-200 flex-shrink-0"
+                            className="inline-flex items-center text-[10px] font-mono font-medium text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-950/60 px-1.5 py-0.5 rounded border border-violet-200 dark:border-violet-800 flex-shrink-0"
                             title="Requires independent peer approval before resolution"
                           >
                             <ShieldCheck className="w-3 h-3 mr-1" />
@@ -107,14 +107,14 @@ export const WorkQueueTable: React.FC<WorkQueueTableProps> = ({
                         )}
                       </div>
                       {item.description && (
-                        <p className="text-[11px] text-slate-500 truncate max-w-sm font-sans mt-0.5">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-sm font-sans mt-0.5">
                           {item.description}
                         </p>
                       )}
                     </td>
 
                     {/* Owning Team */}
-                    <td className="py-3.5 px-4 whitespace-nowrap font-mono text-[11px] text-slate-600">
+                    <td className="py-3.5 px-4 whitespace-nowrap font-mono text-[11px] text-slate-600 dark:text-slate-400">
                       {item.owning_team_id.replace('team_', '').toUpperCase()}
                     </td>
 
@@ -131,19 +131,19 @@ export const WorkQueueTable: React.FC<WorkQueueTableProps> = ({
                     {/* Assignee */}
                     <td className="py-3.5 px-4 whitespace-nowrap font-sans text-xs">
                       {item.assignee_id ? (
-                        <span className="inline-flex items-center gap-1.5 text-slate-800">
-                          <div className="w-5 h-5 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-bold font-mono">
+                        <span className="inline-flex items-center gap-1.5 text-slate-800 dark:text-slate-200">
+                          <div className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-[10px] font-bold font-mono">
                             {(item.assignee_name || item.assignee_id).charAt(0)}
                           </div>
                           <span>{item.assignee_name || item.assignee_id}</span>
                         </span>
                       ) : (
-                        <span className="text-slate-400 italic">Unassigned</span>
+                        <span className="text-slate-400 dark:text-slate-500 italic">Unassigned</span>
                       )}
                     </td>
 
                     {/* Updated At */}
-                    <td className="py-3.5 px-4 text-right font-mono text-[11px] text-slate-400 whitespace-nowrap">
+                    <td className="py-3.5 px-4 text-right font-mono text-[11px] text-slate-400 dark:text-slate-500 whitespace-nowrap">
                       {new Date(item.updated_at).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -159,18 +159,18 @@ export const WorkQueueTable: React.FC<WorkQueueTableProps> = ({
       </div>
 
       {/* Keyset Cursor Pagination & DB Metric Footer */}
-      <div className="bg-slate-50/80 px-5 py-3 flex items-center justify-between text-xs font-mono text-slate-500 border-t border-slate-200">
+      <div className="bg-slate-50/80 dark:bg-slate-800/80 px-5 py-3 flex items-center justify-between text-xs font-mono text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-800">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 text-emerald-700">
-            <Clock className="w-3.5 h-3.5 text-emerald-600" />
+          <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400">
+            <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             <span className="tabular-nums font-semibold">
               Query Time: {queryTimeMs.toFixed(2)} ms
             </span>
-            <span className="text-[11px] text-slate-400 font-sans">
+            <span className="text-[11px] text-slate-400 dark:text-slate-500 font-sans">
               (Keyset B-Tree O(1) Index Seek)
             </span>
           </div>
-          <span className="text-slate-300">|</span>
+          <span className="text-slate-300 dark:text-slate-600">|</span>
           <span>Showing {items.length} items</span>
         </div>
 
@@ -178,17 +178,17 @@ export const WorkQueueTable: React.FC<WorkQueueTableProps> = ({
           <button
             onClick={onResetPagination}
             disabled={isLoading}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-medium disabled:opacity-40 transition-colors shadow-sm"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-medium disabled:opacity-40 transition-colors shadow-sm cursor-pointer"
             title="Reset cursor back to the top of the queue"
           >
-            <RotateCcw className="w-3 h-3 text-slate-500" />
+            <RotateCcw className="w-3 h-3 text-slate-500 dark:text-slate-400" />
             <span>Reset to Top</span>
           </button>
 
           <button
             onClick={onNextPage}
             disabled={!hasMore || isLoading}
-            className="flex items-center gap-1 px-3.5 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:opacity-40 disabled:bg-slate-200 disabled:text-slate-400 transition-colors shadow-sm"
+            className="flex items-center gap-1 px-3.5 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:opacity-40 disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600 transition-colors shadow-sm cursor-pointer"
             title="Fetch next keyset page using (updated_at, id) cursor"
           >
             <span>Next Page (Cursor)</span>

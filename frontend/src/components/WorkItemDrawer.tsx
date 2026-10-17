@@ -262,30 +262,30 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
   const sodViolation = isAssignee || isCreator;
 
   return (
-    <div className="fixed inset-y-0 right-0 z-40 w-full max-w-2xl bg-white border-l border-slate-200 shadow-2xl flex flex-col font-sans animate-slide-left">
+    <div className="fixed inset-y-0 right-0 z-40 w-full max-w-2xl bg-white dark:bg-[#0E1526] border-l border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col font-sans animate-slide-left transition-colors duration-200">
       {/* Top Header */}
-      <div className="p-5 bg-slate-50/90 border-b border-slate-200 flex items-center justify-between">
+      <div className="p-5 bg-slate-50/90 dark:bg-[#111827]/90 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="font-mono font-bold text-sm text-slate-800">
+          <span className="font-mono font-bold text-sm text-slate-800 dark:text-slate-100">
             {item.id}
           </span>
-          <span className="px-2 py-0.5 rounded text-xs font-mono font-bold bg-white text-slate-700 border border-slate-200 shadow-sm">
+          <span className="px-2 py-0.5 rounded text-xs font-mono font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-sm">
             v{item.version}
           </span>
           {liveUpdatedId === item.id && (
-            <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 animate-pulse">
-              <Radio className="w-3 h-3 text-emerald-600" />
+            <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 animate-pulse">
+              <Radio className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
               LIVE UPDATE
             </span>
           )}
-          <span className="text-slate-300">|</span>
+          <span className="text-slate-300 dark:text-slate-700">|</span>
           <StatusBadge status={item.status} size="sm" />
           <PriorityBadge priority={item.priority} />
         </div>
 
         <button
           onClick={onClose}
-          className="text-slate-400 hover:text-slate-700 transition-colors p-1"
+          className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-1"
         >
           <X className="w-5 h-5" />
         </button>
@@ -293,26 +293,26 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
 
       {/* Structured Domain Policy Alert Banner */}
       {errorBanner && (
-        <div className="p-4 bg-rose-50 border-b border-rose-200 text-xs text-rose-900 flex items-start justify-between gap-3">
+        <div className="p-4 bg-rose-50 dark:bg-rose-950/40 border-b border-rose-200 dark:border-rose-900/60 text-xs text-rose-900 dark:text-rose-200 flex items-start justify-between gap-3">
           <div className="flex items-start gap-2.5">
-            <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" />
             <div>
               <div className="font-bold font-mono flex items-center gap-2">
                 <span>POLICY REJECTION:</span>
-                <span className="bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded border border-rose-200">
+                <span className="bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-300 px-1.5 py-0.5 rounded border border-rose-200 dark:border-rose-800">
                   {errorBanner.code}
                 </span>
               </div>
-              <p className="mt-1 leading-relaxed text-slate-700">
+              <p className="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">
                 {errorBanner.message}
               </p>
               {errorBanner.code === 'APPROVAL_GATE_LOCKED' && (
-                <p className="mt-1 font-semibold text-rose-800">
+                <p className="mt-1 font-semibold text-rose-800 dark:text-rose-300">
                   Compliance Rule: High-risk requests cannot transition to RESOLVED until an independent approver signs off. Current approval status: {errorBanner.approval_status}.
                 </p>
               )}
               {errorBanner.code === 'SEPARATION_OF_DUTIES_VIOLATION' && (
-                <p className="mt-1 font-semibold text-rose-800">
+                <p className="mt-1 font-semibold text-rose-800 dark:text-rose-300">
                   Compliance Rule: Separation of duties requires an independent peer review. Operators cannot approve tasks they created or are assigned to.
                 </p>
               )}
@@ -320,7 +320,7 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
           </div>
           <button
             onClick={() => setErrorBanner(null)}
-            className="text-rose-400 hover:text-rose-700"
+            className="text-rose-400 hover:text-rose-700 dark:hover:text-rose-200"
           >
             <X className="w-4 h-4" />
           </button>
@@ -329,14 +329,14 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
 
       {/* Success Notification Banner */}
       {successBanner && (
-        <div className="p-3 bg-emerald-50 border-b border-emerald-200 text-xs text-emerald-800 flex items-center justify-between">
+        <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border-b border-emerald-200 dark:border-emerald-900/60 text-xs text-emerald-800 dark:text-emerald-300 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-600" />
+            <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <span className="font-medium">{successBanner}</span>
           </div>
           <button
             onClick={() => setSuccessBanner(null)}
-            className="text-emerald-500 hover:text-emerald-700"
+            className="text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-300"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -344,13 +344,13 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
       )}
 
       {/* Primary Action Ribbon */}
-      <div className="p-4 bg-white border-b border-slate-200/80 flex flex-wrap items-center gap-2">
+      <div className="p-4 bg-white dark:bg-[#0E1526] border-b border-slate-200/80 dark:border-slate-800 flex flex-wrap items-center gap-2">
         {/* Atomic Claim Action */}
         {!item.assignee_id && item.status === 'TRIAGE' ? (
           <button
             onClick={handleClaim}
             disabled={isSubmitting}
-            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold disabled:opacity-50 transition-all shadow-sm flex items-center gap-1.5"
+            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold disabled:opacity-50 transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
           >
             <User className="w-3.5 h-3.5" />
             <span>Claim Request</span>
@@ -363,7 +363,7 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
             key={target}
             onClick={() => handleTransition(target)}
             disabled={isSubmitting}
-            className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200/80 text-slate-800 text-xs font-medium border border-slate-200 transition-all disabled:opacity-50"
+            className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-medium border border-slate-200 dark:border-slate-700 transition-all disabled:opacity-50 cursor-pointer"
           >
             <span>{getActionLabel(target)}</span>
           </button>
@@ -377,23 +377,23 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
             <button
               onClick={() => handleTransition('RESOLVED')}
               disabled={isSubmitting}
-              className="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-medium border border-rose-200 transition-colors flex items-center gap-1"
+              className="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 text-xs font-medium border border-rose-200 dark:border-rose-800 transition-colors flex items-center gap-1 cursor-pointer"
               title="Test compliance gatekeeper rejection (HTTP 422 APPROVAL_GATE_LOCKED)"
             >
-              <Lock className="w-3 h-3 text-rose-500" />
+              <Lock className="w-3 h-3 text-rose-500 dark:text-rose-400" />
               <span>Test Gatekeeper: Force Resolve</span>
             </button>
           )}
 
         {/* Peer Approval Action */}
         {item.status === 'PENDING_APPROVAL' && (
-          <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
+          <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
             <button
               onClick={() => handleApprove('APPROVED')}
               disabled={isSubmitting}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer ${
                 sodViolation
-                  ? 'bg-violet-50 border border-violet-200 text-violet-700 hover:bg-violet-100'
+                  ? 'bg-violet-50 dark:bg-violet-950/50 border border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/60'
                   : 'bg-emerald-600 hover:bg-emerald-700 text-white'
               }`}
               title={
@@ -409,7 +409,7 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
             <button
               onClick={() => handleApprove('REJECTED')}
               disabled={isSubmitting}
-              className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-medium"
+              className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium cursor-pointer"
             >
               Reject
             </button>
@@ -418,33 +418,33 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
       </div>
 
       {/* Tabs */}
-      <div className="px-5 bg-slate-50/60 border-b border-slate-200 flex items-center gap-6 text-xs">
+      <div className="px-5 bg-slate-50/60 dark:bg-[#111827]/50 border-b border-slate-200 dark:border-slate-800 flex items-center gap-6 text-xs">
         <button
           onClick={() => setActiveTab('details')}
-          className={`py-3 border-b-2 font-medium transition-colors ${
+          className={`py-3 border-b-2 font-medium transition-colors cursor-pointer ${
             activeTab === 'details'
-              ? 'border-blue-600 text-blue-600 font-semibold'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'border-blue-600 text-blue-600 dark:text-blue-400 font-semibold'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
           Overview & Edit
         </button>
         <button
           onClick={() => setActiveTab('audit')}
-          className={`py-3 border-b-2 font-medium transition-colors ${
+          className={`py-3 border-b-2 font-medium transition-colors cursor-pointer ${
             activeTab === 'audit'
-              ? 'border-blue-600 text-blue-600 font-semibold'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'border-blue-600 text-blue-600 dark:text-blue-400 font-semibold'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
           Activity & Audit History
         </button>
         <button
           onClick={() => setActiveTab('outbox')}
-          className={`py-3 border-b-2 font-medium transition-colors ${
+          className={`py-3 border-b-2 font-medium transition-colors cursor-pointer ${
             activeTab === 'outbox'
-              ? 'border-blue-600 text-blue-600 font-semibold'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'border-blue-600 text-blue-600 dark:text-blue-400 font-semibold'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
           Async Outbox & Notes
@@ -457,84 +457,84 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
         {activeTab === 'details' && (
           <div className="space-y-6">
             {/* Metadata Summary Card */}
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
               <div>
-                <span className="text-slate-400 text-[10px] uppercase font-semibold block">
+                <span className="text-slate-400 dark:text-slate-500 text-[10px] uppercase font-semibold block">
                   Team
                 </span>
-                <span className="text-slate-900 font-semibold mt-0.5 block">
+                <span className="text-slate-900 dark:text-slate-100 font-semibold mt-0.5 block">
                   {item.owning_team_id.replace('team_', '').toUpperCase()}
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 text-[10px] uppercase font-semibold block">
+                <span className="text-slate-400 dark:text-slate-500 text-[10px] uppercase font-semibold block">
                   Assignee
                 </span>
-                <span className="text-slate-900 font-semibold mt-0.5 block truncate">
+                <span className="text-slate-900 dark:text-slate-100 font-semibold mt-0.5 block truncate">
                   {item.assignee_name || item.assignee_id || 'Unassigned'}
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 text-[10px] uppercase font-semibold block">
+                <span className="text-slate-400 dark:text-slate-500 text-[10px] uppercase font-semibold block">
                   Approval Status
                 </span>
-                <span className="font-semibold mt-0.5 block text-slate-700">
+                <span className="font-semibold mt-0.5 block text-slate-700 dark:text-slate-300">
                   {item.approval_status}
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 text-[10px] uppercase font-semibold block">
+                <span className="text-slate-400 dark:text-slate-500 text-[10px] uppercase font-semibold block">
                   OCC Version
                 </span>
-                <span className="text-blue-600 font-bold mt-0.5 block">
+                <span className="text-blue-600 dark:text-blue-400 font-bold mt-0.5 block">
                   v{item.version}
                 </span>
               </div>
             </div>
 
             {/* Edit Form */}
-            <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-subtle space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <span className="text-xs font-semibold text-slate-900 uppercase tracking-wider font-mono">
+            <div className="p-5 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-subtle space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-xs font-semibold text-slate-900 dark:text-slate-100 uppercase tracking-wider font-mono">
                   Operational Parameters
                 </span>
-                <span className="text-xs font-mono text-slate-500">
-                  expected_version: <strong className="text-blue-600">v{item.version}</strong>
+                <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
+                  expected_version: <strong className="text-blue-600 dark:text-blue-400">v{item.version}</strong>
                 </span>
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-700 block mb-1">
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">
                   Title
                 </label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500 focus:bg-white font-sans"
+                  className="w-full bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 font-sans"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-700 block mb-1">
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">
                   Description
                 </label>
                 <textarea
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500 focus:bg-white font-sans"
+                  className="w-full bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 font-sans"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-700 block mb-1">
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">
                   Priority
                 </label>
                 <select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as Priority)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white font-mono"
+                  className="w-full bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 font-mono"
                 >
                   <option value="CRITICAL">P0 CRITICAL</option>
                   <option value="HIGH">P1 HIGH</option>
@@ -544,23 +544,23 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
               </div>
 
               {/* Collapsible Developer Concurrency Test Options */}
-              <div className="pt-2 border-t border-slate-100">
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setShowDevOptions(!showDevOptions)}
-                  className="flex items-center justify-between w-full text-xs font-mono text-slate-500 hover:text-slate-800 py-1"
+                  className="flex items-center justify-between w-full text-xs font-mono text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 py-1 cursor-pointer"
                 >
                   <span>Developer Concurrency Test Options</span>
                   {showDevOptions ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                 </button>
 
                 {showDevOptions && (
-                  <div className="mt-2 p-3 rounded-lg bg-amber-50/70 border border-amber-200 flex items-center justify-between text-xs">
+                  <div className="mt-2 p-3 rounded-lg bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 flex items-center justify-between text-xs">
                     <div>
-                      <span className="font-mono font-bold text-amber-800 block">
+                      <span className="font-mono font-bold text-amber-800 dark:text-amber-300 block">
                         Simulate Stale Edit (expected_version: v{item.version - 1})
                       </span>
-                      <p className="text-[11px] text-amber-700 font-sans mt-0.5">
+                      <p className="text-[11px] text-amber-700 dark:text-amber-400 font-sans mt-0.5">
                         Forces a version mismatch to trigger the Side-by-Side OCC Conflict Resolver.
                       </p>
                     </div>
@@ -568,7 +568,7 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
                       type="checkbox"
                       checked={simulateStaleVersion}
                       onChange={(e) => setSimulateStaleVersion(e.target.checked)}
-                      className="w-4 h-4 rounded text-amber-600 focus:ring-0 border-amber-300"
+                      className="w-4 h-4 rounded text-amber-600 focus:ring-0 border-amber-300 dark:border-amber-700"
                     />
                   </div>
                 )}
@@ -578,7 +578,7 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
                 <button
                   onClick={handleUpdateOCC}
                   disabled={isSubmitting}
-                  className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold disabled:opacity-50 transition-all shadow-sm"
+                  className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold disabled:opacity-50 transition-all shadow-sm cursor-pointer"
                 >
                   {isSubmitting ? 'Submitting...' : 'Save Changes (OCC Verified)'}
                 </button>
@@ -591,12 +591,12 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
         {activeTab === 'audit' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono font-medium text-slate-500 uppercase">
+              <span className="text-xs font-mono font-medium text-slate-500 dark:text-slate-400 uppercase">
                 Append-Only Audit Ledger ({auditEvents.length} events)
               </span>
               <button
                 onClick={loadAudit}
-                className="text-xs font-medium text-blue-600 hover:underline flex items-center gap-1"
+                className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
               >
                 <RotateCcw className="w-3 h-3" />
                 <span>Refresh</span>
@@ -612,15 +612,15 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
                 No audit events recorded for this work item yet.
               </div>
             ) : (
-              <div className="relative border-l-2 border-slate-200 ml-3 space-y-6">
+              <div className="relative border-l-2 border-slate-200 dark:border-slate-800 ml-3 space-y-6">
                 {auditEvents.map((event) => (
                   <div key={event.id} className="relative pl-6 text-xs">
-                    <div className="absolute -left-[9px] top-0.5 w-4 h-4 rounded-full bg-white border-2 border-blue-600 shadow-sm" />
-                    <div className="flex items-center justify-between text-slate-500 text-[11px] font-mono">
+                    <div className="absolute -left-[9px] top-0.5 w-4 h-4 rounded-full bg-white dark:bg-slate-900 border-2 border-blue-600 shadow-sm" />
+                    <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[11px] font-mono">
                       <div>
-                        <strong className="text-slate-900 font-sans">{event.actor_name || event.actor_id}</strong>{' '}
+                        <strong className="text-slate-900 dark:text-slate-100 font-sans">{event.actor_name || event.actor_id}</strong>{' '}
                         <span>performed</span>{' '}
-                        <span className="px-2 py-0.5 rounded font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                        <span className="px-2 py-0.5 rounded font-mono font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                           {event.action}
                         </span>
                       </div>
@@ -633,28 +633,28 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
                       </span>
                     </div>
 
-                    <div className="mt-1 text-slate-700 text-xs">
+                    <div className="mt-1 text-slate-700 dark:text-slate-300 text-xs">
                       Version transition:{' '}
-                      <span className="font-mono font-bold text-slate-900">
+                      <span className="font-mono font-bold text-slate-900 dark:text-slate-100">
                         v{event.from_version ?? '-'}
                       </span>{' '}
                       &rarr;{' '}
-                      <span className="font-mono font-bold text-emerald-600">
+                      <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
                         v{event.to_version ?? '-'}
                       </span>
                       {event.from_status && event.to_status && (
-                        <span className="ml-2 font-mono text-slate-500">
+                        <span className="ml-2 font-mono text-slate-500 dark:text-slate-400">
                           ({event.from_status} &rarr; {event.to_status})
                         </span>
                       )}
                     </div>
 
                     {event.payload && Object.keys(event.payload).length > 0 && (
-                      <div className="mt-2 p-3 rounded-lg bg-slate-50 border border-slate-200 font-mono text-[11px] text-slate-700">
+                      <div className="mt-2 p-3 rounded-lg bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 font-mono text-[11px] text-slate-700 dark:text-slate-300">
                         {Object.entries(event.payload).map(([k, v]) => (
                           <div key={k} className="flex gap-2">
-                            <span className="text-slate-400 font-semibold">{k}:</span>
-                            <span className="text-slate-800 truncate">{JSON.stringify(v)}</span>
+                            <span className="text-slate-400 dark:text-slate-500 font-semibold">{k}:</span>
+                            <span className="text-slate-800 dark:text-slate-200 truncate">{JSON.stringify(v)}</span>
                           </div>
                         ))}
                       </div>
@@ -670,23 +670,23 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
         {activeTab === 'outbox' && (
           <div className="space-y-6 text-xs">
             {/* Outbox Status Banner */}
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3 font-sans">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 space-y-3 font-sans">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-slate-900">
+                <span className="font-bold text-slate-900 dark:text-slate-100">
                   Transactional Outbox Events
                 </span>
-                <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                <span className="text-[10px] font-mono font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
                   ACID ENQUEUED
                 </span>
               </div>
-              <p className="text-slate-600 leading-relaxed text-xs">
-                Mutations on this item are written to <code className="font-mono text-blue-600 bg-blue-50 px-1 py-0.5 rounded">outbox_jobs</code> within the exact same database transaction, guaranteeing reliable downstream event publishing without Redis lock contention.
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-xs">
+                Mutations on this item are written to <code className="font-mono text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-1 py-0.5 rounded">outbox_jobs</code> within the exact same database transaction, guaranteeing reliable downstream event publishing without Redis lock contention.
               </p>
             </div>
 
             {/* Notes Section */}
             <div className="space-y-3">
-              <span className="text-xs font-mono font-medium text-slate-500 uppercase block">
+              <span className="text-xs font-mono font-medium text-slate-500 dark:text-slate-400 uppercase block">
                 Collaborative Operational Notes
               </span>
               <div className="flex gap-2">
@@ -695,12 +695,12 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="Leave operational handoff note..."
-                  className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500 focus:bg-white font-sans"
+                  className="flex-1 bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 font-sans"
                   onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
                 />
                 <button
                   onClick={handleAddComment}
-                  className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium flex items-center gap-1 shadow-sm"
+                  className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium flex items-center gap-1 shadow-sm cursor-pointer"
                 >
                   <Send className="w-3 h-3" />
                   <span>Post</span>
@@ -709,12 +709,12 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
 
               <div className="space-y-2">
                 {comments.map((c) => (
-                  <div key={c.id} className="p-3 rounded-lg bg-white border border-slate-200 shadow-subtle">
-                    <div className="flex items-center justify-between text-slate-400 font-mono text-[10px] mb-1">
-                      <strong className="text-slate-900 font-sans">{c.author_name || c.author_id}</strong>
+                  <div key={c.id} className="p-3 rounded-lg bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-subtle">
+                    <div className="flex items-center justify-between text-slate-400 dark:text-slate-500 font-mono text-[10px] mb-1">
+                      <strong className="text-slate-900 dark:text-slate-100 font-sans">{c.author_name || c.author_id}</strong>
                       <span>{new Date(c.created_at).toLocaleTimeString()}</span>
                     </div>
-                    <p className="text-slate-700 font-sans">{c.content}</p>
+                    <p className="text-slate-700 dark:text-slate-300 font-sans">{c.content}</p>
                   </div>
                 ))}
               </div>

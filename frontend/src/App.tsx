@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { api } from './api/client';
 import { Persona, Team, WorkItem } from './types';
 import { Navbar, NavTab } from './components/Navbar';
@@ -9,6 +10,13 @@ import { CreateWorkItemModal } from './components/CreateWorkItemModal';
 import { OverviewView } from './views/OverviewView';
 import { ConcurrencyStudioView } from './views/ConcurrencyStudioView';
 import { BenchmarksView } from './views/BenchmarksView';
+
+const PAGE_TRANSITION = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -4 },
+  transition: { duration: 0.15, ease: 'easeOut' as const },
+};
 
 // Seeded personas fallback in case backend is initializing
 const SEEDED_PERSONAS: Persona[] = [
@@ -288,9 +296,9 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F8FAFC] via-[#F4F7FB] to-[#EEF2F6] text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white relative">
+    <div className="min-h-screen bg-gradient-to-br from-[#F8FAFC] via-[#F4F7FB] to-[#EEF2F6] dark:from-[#0B0F19] dark:via-[#0E1526] dark:to-[#111827] text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white relative transition-colors duration-200">
       {/* Subtle top ambient radial glow */}
-      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(1200px_circle_at_50%_0%,rgba(255,255,255,0.85),transparent)] z-0" />
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(1200px_circle_at_50%_0%,rgba(255,255,255,0.85),transparent)] dark:bg-[radial-gradient(1200px_circle_at_50%_0%,rgba(37,99,235,0.08),transparent)] z-0" />
 
       {/* 1. Persistent Top Navigation Bar */}
       <Navbar
@@ -300,74 +308,86 @@ export function App() {
         activePersona={activePersona}
         onSelectPersona={setActivePersona}
         onOpenCreate={() => setShowCreateModal(true)}
+        totalItems={totalItems}
+        lastQueryLatencyMs={lastQueryLatencyMs}
       />
 
-      {/* 2. Main Page Views Container */}
+      {/* 2. Main Page Views Container — AnimatePresence page transitions (0.15s fade/slide) */}
       <div className="relative z-10 flex-1 flex flex-col min-h-0">
-        {currentTab === 'overview' && (
-          <OverviewView
-            onNavigate={handleNavigateFromOverview}
-            totalItems={totalItems}
-            lastLatencyMs={lastQueryLatencyMs}
-          />
-        )}
+        <AnimatePresence mode="wait">
+          {currentTab === 'overview' && (
+            <motion.div key="overview" className="flex-1 flex flex-col" {...PAGE_TRANSITION}>
+              <OverviewView
+                onNavigate={handleNavigateFromOverview}
+                totalItems={totalItems}
+                lastLatencyMs={lastQueryLatencyMs}
+              />
+            </motion.div>
+          )}
 
-        {currentTab === 'workspace' && (
-          <div className="flex-1 flex flex-col min-h-0">
-            {/* Filter Bar */}
-            <FilterBar
-              preset={preset}
-              onSelectPreset={setPreset}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              teams={teams}
-              selectedTeam={selectedTeam}
-              onSelectTeam={setSelectedTeam}
-              selectedStatus={selectedStatus}
-              onSelectStatus={setSelectedStatus}
-              selectedPriority={selectedPriority}
-              onSelectPriority={setSelectedPriority}
-              onResetFilters={handleResetFilters}
-              lastLatencyMs={lastQueryLatencyMs}
-            />
-
-            {/* Keyset Table and Slide-Over Drawer */}
-            <main className="flex-1 flex flex-col min-h-0 relative">
-              <WorkQueueTable
-                items={workItems}
-                selectedItem={selectedItem}
-                onSelectItem={setSelectedItem}
-                nextCursor={cursor}
-                hasMore={hasMore}
-                onNextPage={handleNextPage}
-                onResetPagination={handleResetPagination}
-                queryTimeMs={lastQueryLatencyMs}
-                isLoading={isLoading}
+          {currentTab === 'workspace' && (
+            <motion.div key="workspace" className="flex-1 flex flex-col min-h-0" {...PAGE_TRANSITION}>
+              {/* Filter Bar */}
+              <FilterBar
+                preset={preset}
+                onSelectPreset={setPreset}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                teams={teams}
+                selectedTeam={selectedTeam}
+                onSelectTeam={setSelectedTeam}
+                selectedStatus={selectedStatus}
+                onSelectStatus={setSelectedStatus}
+                selectedPriority={selectedPriority}
+                onSelectPriority={setSelectedPriority}
+                onResetFilters={handleResetFilters}
+                lastLatencyMs={lastQueryLatencyMs}
               />
 
-              {/* Slide-Over Detail Drawer */}
-              {selectedItem && (
-                <WorkItemDrawer
-                  item={selectedItem}
-                  activePersona={activePersona}
-                  onClose={() => setSelectedItem(null)}
-                  onItemUpdated={handleItemUpdated}
-                  liveUpdatedId={liveUpdatedId}
+              {/* Keyset Table and Slide-Over Drawer */}
+              <main className="flex-1 flex flex-col min-h-0 relative">
+                <WorkQueueTable
+                  items={workItems}
+                  selectedItem={selectedItem}
+                  onSelectItem={setSelectedItem}
+                  nextCursor={cursor}
+                  hasMore={hasMore}
+                  onNextPage={handleNextPage}
+                  onResetPagination={handleResetPagination}
+                  queryTimeMs={lastQueryLatencyMs}
+                  isLoading={isLoading}
                 />
-              )}
-            </main>
-          </div>
-        )}
 
-        {currentTab === 'concurrency' && (
-          <ConcurrencyStudioView
-            personas={personas}
-            workItems={workItems}
-            onItemUpdated={handleItemUpdated}
-          />
-        )}
+                {/* Slide-Over Detail Drawer */}
+                {selectedItem && (
+                  <WorkItemDrawer
+                    item={selectedItem}
+                    activePersona={activePersona}
+                    onClose={() => setSelectedItem(null)}
+                    onItemUpdated={handleItemUpdated}
+                    liveUpdatedId={liveUpdatedId}
+                  />
+                )}
+              </main>
+            </motion.div>
+          )}
 
-        {currentTab === 'benchmarks' && <BenchmarksView />}
+          {currentTab === 'concurrency' && (
+            <motion.div key="concurrency" className="flex-1 flex flex-col" {...PAGE_TRANSITION}>
+              <ConcurrencyStudioView
+                personas={personas}
+                workItems={workItems}
+                onItemUpdated={handleItemUpdated}
+              />
+            </motion.div>
+          )}
+
+          {currentTab === 'benchmarks' && (
+            <motion.div key="benchmarks" className="flex-1 flex flex-col" {...PAGE_TRANSITION}>
+              <BenchmarksView />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* 3. New Work Item Creation Modal */}
