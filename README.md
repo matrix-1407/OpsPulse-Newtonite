@@ -529,7 +529,7 @@ uv run --python .venv uvicorn app.main:app --app-dir backend --reload --port 800
 - SSE Live Event Stream: [http://localhost:8000/api/v1/events/stream](http://localhost:8000/api/v1/events/stream)
 - Micro-Benchmarks Endpoint: `POST http://localhost:8000/api/v1/benchmarks/run`
 
-### Step 7: Start Frontend Operations Cockpit (React + TypeScript + Vite)
+### Step 7: Start Frontend Operations Console (Minimalist Light-Gradient UI)
 In a new terminal window:
 ```bash
 cd frontend
@@ -538,15 +538,28 @@ npm run dev
 ```
 Open **[http://localhost:5173](http://localhost:5173)** in your browser.
 
-The Operations Cockpit connects to the backend on `http://localhost:8000` via Vite's proxy and provides:
-1. **1-Click Multi-Persona Switcher:** Switch between 6 personas (`usr_aarav`, `usr_priya`, `usr_rohan`, `usr_sneha`, `usr_vikram`, `usr_ananya`) with live role badges (`OPERATOR`, `APPROVER`, `LEAD`, `REQUESTER`).
-2. **Smart Queue Presets & GIN FTS Search:** Instant filtering across `tsvector` indexed items with sub-5ms latency readout.
-3. **Keyset Cursor Pagination (O(1)):** Keyset navigation via `(updated_at, id)` index seek without memory bloat.
-4. **Optimistic Concurrency Control (OCC) Editor & Conflict Resolver:** Side-by-side comparison modal (`vX` vs `vY`) triggered on `HTTP 409 STALE_VERSION_CONFLICT`.
-5. **5-Way Concurrent Claim Race Simulator:** Live test firing 5 parallel `POST /claim` requests via `Promise.all` demonstrating 1 winner (`200 OK`) and 4 blocked (`409 ALREADY_CLAIMED`).
-6. **Dual-Operator Split View:** Simultaneous side-by-side operator screens to test race conditions in real time.
-7. **Concurrency & Scale Benchmark Lab Modal:** 1-click execution of the full micro-benchmark suite (FTS, Keyset, 8-way claim race, SKIP LOCKED Outbox).
-8. **Network Retry Double-Click Test:** Create item modal with Idempotency-Key UUID display and 3x simultaneous replay test.
+The Operations Console connects to the backend on `http://localhost:8000` via Vite's proxy and features a **Minimalist Light-Gradient Architecture** (inspired by Stripe Dashboard, Linear Light Mode, and Vercel Analytics) with **4 dedicated top-level pages**:
+
+1. **Overview (Homepage & Feature Gateway):**
+   - Executive header framing the distributed concurrency challenge.
+   - **Live System Pulse Strip:** 4 live metric cards (`10,015+ Work Items`, `~5.1 ms Keyset Latency`, `5 Concurrency Guards`, and `Outbox Health`).
+   - **Interactive Capability Cards:** 1-click feature routing directly to triage, OCC lab, separation of duties, or telemetry.
+2. **Workspace (Decluttered Operational Queue & Slide-Over Inspector):**
+   - **Smart Queue Presets:** `All Active`, `Unclaimed Triage`, `Pending Approval`, `My Assigned`, `Critical (P0/P1)`.
+   - **Instant Search:** Debounced server-side GIN Full-Text Search against PostgreSQL `tsvector` with live latency indicator (`~5.2 ms`).
+   - **Keyset Cursor Pagination (O(1)):** Keyset navigation via `(updated_at, id)` index seek without memory bloat or offset degradation.
+   - **Slide-Over Detail Drawer:** Clean white drawer with human-friendly action buttons (`Claim Request`, `Request Approval`, `Approve Request`), domain policy alert banners on invariant violations, OCC conflict simulation toggle, field-level before/after audit timeline, and transactional outbox job statuses.
+3. **Concurrency Studio (Dedicated Interactive Race & OCC Playground):**
+   - **Mode A: Dual-Operator Split Screen (OCC Collision):** Two independent operators holding version `vX`. Clicking **"⚡ Simulate Simultaneous Edit Collision"** submits both, demonstrating Operator A succeeding (`200 OK → vX+1`) and Operator B receiving `409 STALE_VERSION_CONFLICT` with an interactive side-by-side Merge/Reload resolver.
+   - **Mode B: 5-Way Atomic Claim Race (`SELECT ... FOR UPDATE`):** Fires 5 parallel `POST /claim` requests at the exact millisecond (`Promise.all`), visually highlighting 1 Winner (`200 OK — Lock Acquired`) and 4 Contenders (`409 Conflict — Already Claimed`).
+4. **Benchmarks & Telemetry (Full-Page Evaluation Dashboard):**
+   - Top summary ribbon with live suite status and one-click execution button.
+   - Pre-populated + live-updatable performance cards and comparative bars:
+     - **Pagination Scale Comparison:** Keyset Cursor (`~1.8 ms`) vs Traditional OFFSET (`~19.4 ms`) &mdash; `10.8x faster at depth`.
+     - **GIN Search Percentiles:** `p50`, `p95`, `p99` latencies against the 10,015-row dataset.
+     - **High-Contention Serialization:** 8-way concurrent claims yielding 1 winner, 7 deterministic rejections, 0 deadlocks.
+     - **Idempotency Advisory Lock & Replay:** Initial write vs cached replay (`X-Idempotent-Replay: true`).
+     - **Transactional Outbox Worker:** Batch dispatch throughput and **Simulate Failing Webhook Job** to watch jobs transition `PENDING -> RETRY -> DEAD_LETTER`.
 
 ---
 
@@ -568,6 +581,7 @@ The Operations Cockpit connects to the backend on `http://localhost:8000` via Vi
 | `GET` | `/api/v1/teams` | List operational teams |
 | `POST` | `/api/v1/benchmarks/run` | Live micro-benchmarks (GIN FTS, Keyset vs Offset, Outbox, 8-way claim race) |
 | `POST` | `/api/v1/system/outbox/process-batch` | On-demand transactional outbox execution (`SKIP LOCKED`) |
+| `POST` | `/api/v1/system/cleanup-test-artifacts` | Purge synthetic test records and restore showcase items |
 
 ---
 

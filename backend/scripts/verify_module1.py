@@ -257,6 +257,9 @@ async def verify():
             print_failure(f"Legitimate approval failed: {legit_approve_res.status_code}: {legit_approve_res.text}")
             all_passed = False
 
+        # Clean up any test artifacts created during verification run
+        await client.post("/api/v1/system/cleanup-test-artifacts")
+
         # -------------------------------------------------------------
         # FINAL STATUS
         # -------------------------------------------------------------

@@ -3,20 +3,15 @@ import {
   X,
   User,
   ShieldCheck,
-  CheckCircle,
-  XCircle,
-  Clock,
   Send,
-  Zap,
   Lock,
-  History,
-  FileText,
-  AlertTriangle,
   RotateCcw,
   Check,
   Radio,
-  Server,
-  ArrowRight,
+  ChevronDown,
+  ChevronUp,
+  AlertCircle,
+  FileCheck2,
 } from 'lucide-react';
 import { api, ApiError } from '../api/client';
 import {
@@ -30,13 +25,11 @@ import {
 } from '../types';
 import { StatusBadge } from './StatusBadge';
 import { PriorityBadge } from './PriorityBadge';
-import { RaceSimulationModal } from './RaceSimulationModal';
 import { OCCConflictModal } from './OCCConflictModal';
 
 interface WorkItemDrawerProps {
   item: WorkItem;
   activePersona: Persona;
-  personas: Persona[];
   onClose: () => void;
   onItemUpdated: (item: WorkItem) => void;
   liveUpdatedId?: string | null;
@@ -45,12 +38,11 @@ interface WorkItemDrawerProps {
 export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
   item,
   activePersona,
-  personas,
   onClose,
   onItemUpdated,
   liveUpdatedId,
 }) => {
-  const [activeTab, setActiveTab] = useState<'details' | 'audit' | 'comments' | 'outbox'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'audit' | 'outbox'>('details');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorBanner, setErrorBanner] = useState<RFCError | null>(null);
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
@@ -59,10 +51,10 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
   const [title, setTitle] = useState(item.title);
   const [description, setDescription] = useState(item.description || '');
   const [priority, setPriority] = useState<Priority>(item.priority);
+  const [showDevOptions, setShowDevOptions] = useState(false);
   const [simulateStaleVersion, setSimulateStaleVersion] = useState(false);
 
   // Modals
-  const [showRaceModal, setShowRaceModal] = useState(false);
   const [conflictModalData, setConflictModalData] = useState<{
     staleItem: {
       expectedVersion: number;
@@ -77,7 +69,6 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
   const [newComment, setNewComment] = useState('');
   const [isLoadingAudit, setIsLoadingAudit] = useState(false);
 
-  // Reset form when item changes
   useEffect(() => {
     setTitle(item.title);
     setDescription(item.description || '');
@@ -151,7 +142,7 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
         activePersona.id
       );
       onItemUpdated(updated);
-      setSuccessBanner(`Claimed item! Assigned to ${activePersona.name} (v${updated.version}).`);
+      setSuccessBanner(`Claimed successfully! Assigned to ${activePersona.name}.`);
     } catch (err: any) {
       setErrorBanner(err as ApiError);
     } finally {
@@ -175,7 +166,7 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
         activePersona.id
       );
       onItemUpdated(updated);
-      setSuccessBanner(`Workflow moved to ${targetStatus} (v${updated.version}).`);
+      setSuccessBanner(`Status updated to ${targetStatus} (v${updated.version}).`);
     } catch (err: any) {
       setErrorBanner(err as ApiError);
     } finally {
@@ -201,8 +192,8 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
       onItemUpdated(updated);
       setSuccessBanner(
         decision === 'APPROVED'
-          ? `Item approved! Approval gate cleared (v${updated.version}).`
-          : `Item rejected (v${updated.version}).`
+          ? `Request approved successfully (v${updated.version}).`
+          : `Request marked rejected (v${updated.version}).`
       );
     } catch (err: any) {
       setErrorBanner(err as ApiError);
@@ -222,7 +213,26 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
     }
   };
 
-  // State Machine Available Transitions based on ALLOWED_TRANSITIONS
+  // Human-friendly next status label
+  const getActionLabel = (status: WorkItemStatus): string => {
+    switch (status) {
+      case 'INVESTIGATING':
+        return 'Move to Investigating';
+      case 'PENDING_APPROVAL':
+        return 'Submit for Peer Approval';
+      case 'APPROVED':
+        return 'Approve Request';
+      case 'RESOLVED':
+        return 'Mark Resolved';
+      case 'CLOSED':
+        return 'Close Request';
+      case 'BLOCKED':
+        return 'Flag as Blocked';
+      default:
+        return `Move to ${status}`;
+    }
+  };
+
   const getAvailableTransitions = (status: WorkItemStatus): WorkItemStatus[] => {
     switch (status) {
       case 'TRIAGE':
@@ -247,136 +257,119 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
   };
 
   const availableTransitions = getAvailableTransitions(item.status);
-
-  // Separation of duties check
   const isAssignee = item.assignee_id === activePersona.id;
   const isCreator = item.created_by_id === activePersona.id;
   const sodViolation = isAssignee || isCreator;
 
   return (
-    <div className="fixed inset-y-0 right-0 z-40 w-full max-w-2xl bg-[#0F172A] border-l border-[#1F2937] shadow-2xl flex flex-col font-sans animate-slide-left">
+    <div className="fixed inset-y-0 right-0 z-40 w-full max-w-2xl bg-white border-l border-slate-200 shadow-2xl flex flex-col font-sans animate-slide-left">
       {/* Top Header */}
-      <div className="p-4 bg-[#111827] border-b border-[#1F2937] flex items-center justify-between">
+      <div className="p-5 bg-slate-50/90 border-b border-slate-200 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <span className="font-mono font-bold text-sm text-white">
-              {item.id}
+          <span className="font-mono font-bold text-sm text-slate-800">
+            {item.id}
+          </span>
+          <span className="px-2 py-0.5 rounded text-xs font-mono font-bold bg-white text-slate-700 border border-slate-200 shadow-sm">
+            v{item.version}
+          </span>
+          {liveUpdatedId === item.id && (
+            <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 animate-pulse">
+              <Radio className="w-3 h-3 text-emerald-600" />
+              LIVE UPDATE
             </span>
-            <span className="px-2 py-0.5 rounded text-xs font-mono font-bold bg-[#1E293B] text-blue-300 border border-blue-900/60">
-              v{item.version}
-            </span>
-            {liveUpdatedId === item.id && (
-              <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-700/60 animate-pulse">
-                <Radio className="w-3 h-3 text-emerald-400" />
-                LIVE UPDATE
-              </span>
-            )}
-          </div>
-          <span className="text-gray-500">|</span>
+          )}
+          <span className="text-slate-300">|</span>
           <StatusBadge status={item.status} size="sm" />
           <PriorityBadge priority={item.priority} />
         </div>
 
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-white transition-colors p-1"
+          className="text-slate-400 hover:text-slate-700 transition-colors p-1"
         >
           <X className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Structured RFC Error Banner (Intentional Guardrail Demonstration) */}
+      {/* Structured Domain Policy Alert Banner */}
       {errorBanner && (
-        <div className="p-3 bg-red-950/70 border-b border-red-500/50 text-xs font-mono flex items-start justify-between gap-2 text-red-200">
-          <div className="flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+        <div className="p-4 bg-rose-50 border-b border-rose-200 text-xs text-rose-900 flex items-start justify-between gap-3">
+          <div className="flex items-start gap-2.5">
+            <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
             <div>
-              <div className="font-bold text-white flex items-center gap-2">
-                <span>HTTP {errorBanner.status_code}:</span>
-                <span className="bg-red-900/80 px-1.5 py-0.2 rounded text-red-300">
+              <div className="font-bold font-mono flex items-center gap-2">
+                <span>POLICY REJECTION:</span>
+                <span className="bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded border border-rose-200">
                   {errorBanner.code}
                 </span>
               </div>
-              <p className="mt-1 font-sans text-red-200 leading-relaxed">
+              <p className="mt-1 leading-relaxed text-slate-700">
                 {errorBanner.message}
               </p>
               {errorBanner.code === 'APPROVAL_GATE_LOCKED' && (
-                <div className="mt-1 text-[11px] text-red-300 font-sans">
-                  🛡️ <strong>Compliance Guardrail:</strong> Work item requires peer approval before resolving. Approval status is currently <code className="bg-red-900 px-1 rounded">{errorBanner.approval_status}</code>.
-                </div>
+                <p className="mt-1 font-semibold text-rose-800">
+                  Compliance Rule: High-risk requests cannot transition to RESOLVED until an independent approver signs off. Current approval status: {errorBanner.approval_status}.
+                </p>
               )}
               {errorBanner.code === 'SEPARATION_OF_DUTIES_VIOLATION' && (
-                <div className="mt-1 text-[11px] text-red-300 font-sans">
-                  🛡️ <strong>Separation of Duties:</strong> An operator cannot approve work items they themselves created or claimed.
-                </div>
+                <p className="mt-1 font-semibold text-rose-800">
+                  Compliance Rule: Separation of duties requires an independent peer review. Operators cannot approve tasks they created or are assigned to.
+                </p>
               )}
             </div>
           </div>
           <button
             onClick={() => setErrorBanner(null)}
-            className="text-red-400 hover:text-white"
+            className="text-rose-400 hover:text-rose-700"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
-      {/* Success Banner */}
+      {/* Success Notification Banner */}
       {successBanner && (
-        <div className="p-3 bg-emerald-950/70 border-b border-emerald-500/50 text-xs font-mono flex items-center justify-between text-emerald-200">
+        <div className="p-3 bg-emerald-50 border-b border-emerald-200 text-xs text-emerald-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-400" />
-            <span>{successBanner}</span>
+            <Check className="w-4 h-4 text-emerald-600" />
+            <span className="font-medium">{successBanner}</span>
           </div>
           <button
             onClick={() => setSuccessBanner(null)}
-            className="text-emerald-400 hover:text-white"
+            className="text-emerald-500 hover:text-emerald-700"
           >
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
 
-      {/* Action Bar (Atomic Claim + 5-Way Race + Workflow State Machine) */}
-      <div className="p-3.5 bg-[#090D16] border-b border-[#1F2937] flex flex-wrap items-center gap-2">
-        {/* Atomic Claim Action (if unassigned or TRIAGE) */}
+      {/* Primary Action Ribbon */}
+      <div className="p-4 bg-white border-b border-slate-200/80 flex flex-wrap items-center gap-2">
+        {/* Atomic Claim Action */}
         {!item.assignee_id && item.status === 'TRIAGE' ? (
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={handleClaim}
-              disabled={isSubmitting}
-              className="px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-xs font-mono font-medium disabled:opacity-50 transition-colors shadow-sm flex items-center gap-1.5"
-            >
-              <User className="w-3.5 h-3.5" />
-              <span>Claim Work Item (SELECT FOR UPDATE)</span>
-            </button>
-
-            {/* Micro-button for 5-Way Claim Race */}
-            <button
-              onClick={() => setShowRaceModal(true)}
-              className="px-2 py-1.5 rounded bg-amber-950/80 hover:bg-amber-900 border border-amber-600/60 text-amber-300 text-xs font-mono flex items-center gap-1 transition-colors"
-              title="Test concurrency: fire 5 simultaneous claim requests from 5 operators"
-            >
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
-              <span>⚡ Simulate 5-Way Race</span>
-            </button>
-          </div>
+          <button
+            onClick={handleClaim}
+            disabled={isSubmitting}
+            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold disabled:opacity-50 transition-all shadow-sm flex items-center gap-1.5"
+          >
+            <User className="w-3.5 h-3.5" />
+            <span>Claim Request</span>
+          </button>
         ) : null}
 
-        {/* Workflow State Machine Transitions */}
+        {/* Workflow Transitions */}
         {availableTransitions.map((target) => (
           <button
             key={target}
             onClick={() => handleTransition(target)}
             disabled={isSubmitting}
-            className="px-2.5 py-1.5 rounded bg-[#1E293B] hover:bg-[#334155] text-gray-200 text-xs font-mono border border-gray-700/60 transition-colors disabled:opacity-50 flex items-center gap-1"
+            className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200/80 text-slate-800 text-xs font-medium border border-slate-200 transition-all disabled:opacity-50"
           >
-            <span>Move to</span>
-            <strong className="text-white">{target}</strong>
+            <span>{getActionLabel(target)}</span>
           </button>
         ))}
 
-        {/* Intentional Gatekeeper Test Button (e.g. Try to Resolve while Pending Approval) */}
+        {/* Intentional Gatekeeper Violation Test */}
         {item.requires_approval &&
           item.approval_status !== 'APPROVED' &&
           item.status !== 'RESOLVED' &&
@@ -384,41 +377,39 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
             <button
               onClick={() => handleTransition('RESOLVED')}
               disabled={isSubmitting}
-              className="px-2.5 py-1.5 rounded bg-red-950/40 hover:bg-red-900/60 text-red-300 text-xs font-mono border border-red-800/60 transition-colors flex items-center gap-1"
-              title="Click to intentionally test compliance gatekeeper rejection (HTTP 422 APPROVAL_GATE_LOCKED)"
+              className="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-medium border border-rose-200 transition-colors flex items-center gap-1"
+              title="Test compliance gatekeeper rejection (HTTP 422 APPROVAL_GATE_LOCKED)"
             >
-              <Lock className="w-3 h-3 text-red-400" />
+              <Lock className="w-3 h-3 text-rose-500" />
               <span>Test Gatekeeper: Force Resolve</span>
             </button>
           )}
 
-        {/* Approval Actions (When PENDING_APPROVAL) */}
+        {/* Peer Approval Action */}
         {item.status === 'PENDING_APPROVAL' && (
-          <div className="flex items-center gap-1.5 pl-2 border-l border-gray-700">
+          <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
             <button
               onClick={() => handleApprove('APPROVED')}
               disabled={isSubmitting}
-              className={`px-3 py-1.5 rounded text-xs font-mono font-medium flex items-center gap-1 transition-colors ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm ${
                 sodViolation
-                  ? 'bg-purple-950/40 border border-purple-800 text-purple-300 hover:bg-purple-900/40'
-                  : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                  ? 'bg-violet-50 border border-violet-200 text-violet-700 hover:bg-violet-100'
+                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
               }`}
               title={
                 sodViolation
-                  ? 'Separation of duties: clicking this will demonstrate backend rejection (HTTP 403 SEPARATION_OF_DUTIES_VIOLATION)'
-                  : 'Approve item'
+                  ? 'Separation of Duties violation: you cannot approve your own assigned item'
+                  : 'Approve request'
               }
             >
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>
-                {sodViolation ? 'Test SoD Violation (Approve)' : 'Approve Item'}
-              </span>
+              <span>{sodViolation ? 'Test SoD Violation (Approve)' : 'Approve Request'}</span>
             </button>
 
             <button
               onClick={() => handleApprove('REJECTED')}
               disabled={isSubmitting}
-              className="px-2.5 py-1.5 rounded bg-red-950/60 hover:bg-red-900/60 border border-red-700 text-red-300 text-xs font-mono"
+              className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-medium"
             >
               Reject
             </button>
@@ -426,141 +417,124 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
         )}
       </div>
 
-      {/* Tabs Bar */}
-      <div className="px-4 bg-[#0B0F19] border-b border-[#1F2937] flex items-center gap-4 text-xs font-mono">
+      {/* Tabs */}
+      <div className="px-5 bg-slate-50/60 border-b border-slate-200 flex items-center gap-6 text-xs">
         <button
           onClick={() => setActiveTab('details')}
-          className={`py-2.5 border-b-2 font-medium transition-colors ${
+          className={`py-3 border-b-2 font-medium transition-colors ${
             activeTab === 'details'
-              ? 'border-blue-500 text-white'
-              : 'border-transparent text-gray-400 hover:text-gray-200'
+              ? 'border-blue-600 text-blue-600 font-semibold'
+              : 'border-transparent text-slate-500 hover:text-slate-900'
           }`}
         >
-          Details & OCC Editor
+          Overview & Edit
         </button>
         <button
           onClick={() => setActiveTab('audit')}
-          className={`py-2.5 border-b-2 font-medium transition-colors ${
+          className={`py-3 border-b-2 font-medium transition-colors ${
             activeTab === 'audit'
-              ? 'border-blue-500 text-white'
-              : 'border-transparent text-gray-400 hover:text-gray-200'
+              ? 'border-blue-600 text-blue-600 font-semibold'
+              : 'border-transparent text-slate-500 hover:text-slate-900'
           }`}
         >
-          Immutable Audit Trail
+          Activity & Audit History
         </button>
         <button
           onClick={() => setActiveTab('outbox')}
-          className={`py-2.5 border-b-2 font-medium transition-colors ${
+          className={`py-3 border-b-2 font-medium transition-colors ${
             activeTab === 'outbox'
-              ? 'border-blue-500 text-white'
-              : 'border-transparent text-gray-400 hover:text-gray-200'
+              ? 'border-blue-600 text-blue-600 font-semibold'
+              : 'border-transparent text-slate-500 hover:text-slate-900'
           }`}
         >
-          Transactional Outbox
-        </button>
-        <button
-          onClick={() => setActiveTab('comments')}
-          className={`py-2.5 border-b-2 font-medium transition-colors ${
-            activeTab === 'comments'
-              ? 'border-blue-500 text-white'
-              : 'border-transparent text-gray-400 hover:text-gray-200'
-          }`}
-        >
-          Comments
+          Async Outbox & Notes
         </button>
       </div>
 
-      {/* Tab Content Body */}
-      <div className="flex-1 overflow-y-auto p-5">
+      {/* Body Content */}
+      <div className="flex-1 overflow-y-auto p-6">
+        {/* Tab 1: Overview & Edit */}
         {activeTab === 'details' && (
-          <div className="space-y-5">
+          <div className="space-y-6">
             {/* Metadata Summary Card */}
-            <div className="p-3.5 rounded bg-[#111827] border border-[#1F2937] grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
               <div>
-                <span className="text-gray-500 text-[10px] uppercase block">
-                  Owning Team
+                <span className="text-slate-400 text-[10px] uppercase font-semibold block">
+                  Team
                 </span>
-                <span className="text-white font-semibold mt-0.5 block">
+                <span className="text-slate-900 font-semibold mt-0.5 block">
                   {item.owning_team_id.replace('team_', '').toUpperCase()}
                 </span>
               </div>
               <div>
-                <span className="text-gray-500 text-[10px] uppercase block">
+                <span className="text-slate-400 text-[10px] uppercase font-semibold block">
                   Assignee
                 </span>
-                <span className="text-white font-semibold mt-0.5 block truncate">
-                  {item.assignee_name || item.assignee_id || 'None'}
+                <span className="text-slate-900 font-semibold mt-0.5 block truncate">
+                  {item.assignee_name || item.assignee_id || 'Unassigned'}
                 </span>
               </div>
               <div>
-                <span className="text-gray-500 text-[10px] uppercase block">
+                <span className="text-slate-400 text-[10px] uppercase font-semibold block">
                   Approval Status
                 </span>
-                <span
-                  className={`font-semibold mt-0.5 block ${
-                    item.approval_status === 'APPROVED'
-                      ? 'text-emerald-400'
-                      : item.approval_status === 'PENDING'
-                      ? 'text-purple-400'
-                      : 'text-gray-400'
-                  }`}
-                >
+                <span className="font-semibold mt-0.5 block text-slate-700">
                   {item.approval_status}
                 </span>
               </div>
               <div>
-                <span className="text-gray-500 text-[10px] uppercase block">
+                <span className="text-slate-400 text-[10px] uppercase font-semibold block">
                   OCC Version
                 </span>
-                <span className="text-blue-400 font-bold mt-0.5 block">
+                <span className="text-blue-600 font-bold mt-0.5 block">
                   v{item.version}
                 </span>
               </div>
             </div>
 
-            {/* OCC Editor Form */}
-            <div className="p-4 rounded-lg bg-[#111827] border border-[#1F2937] space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-gray-800">
-                <span className="text-xs font-mono font-semibold text-gray-200 uppercase tracking-wider">
-                  Edit Work Item (Optimistic Concurrency Control)
+            {/* Edit Form */}
+            <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-subtle space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <span className="text-xs font-semibold text-slate-900 uppercase tracking-wider font-mono">
+                  Operational Parameters
                 </span>
-                <span className="text-[11px] font-mono text-gray-400">
-                  Target expected_version: <strong className="text-blue-400">v{item.version}</strong>
+                <span className="text-xs font-mono text-slate-500">
+                  expected_version: <strong className="text-blue-600">v{item.version}</strong>
                 </span>
               </div>
 
               <div>
-                <label className="text-xs font-mono text-gray-300 block mb-1">
+                <label className="text-xs font-medium text-slate-700 block mb-1">
                   Title
                 </label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-[#090D16] border border-[#1F2937] rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 font-sans"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500 focus:bg-white font-sans"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-mono text-gray-300 block mb-1">
+                <label className="text-xs font-medium text-slate-700 block mb-1">
                   Description
                 </label>
                 <textarea
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-[#090D16] border border-[#1F2937] rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 font-sans"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500 focus:bg-white font-sans"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-mono text-gray-300 block mb-1">
+                <label className="text-xs font-medium text-slate-700 block mb-1">
                   Priority
                 </label>
                 <select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as Priority)}
-                  className="w-full bg-[#090D16] border border-[#1F2937] rounded px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white font-mono"
                 >
                   <option value="CRITICAL">P0 CRITICAL</option>
                   <option value="HIGH">P1 HIGH</option>
@@ -569,51 +543,60 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
                 </select>
               </div>
 
-              {/* Stale Version Simulation Checkbox */}
-              <div className="p-3 rounded bg-[#161D2F] border border-amber-600/40 flex items-center justify-between text-xs">
-                <div>
-                  <label
-                    htmlFor="stale-toggle"
-                    className="font-mono font-semibold text-amber-300 block cursor-pointer"
-                  >
-                    Simulate Stale Version Conflict (OCC Test)
-                  </label>
-                  <p className="text-[11px] text-gray-400 font-sans mt-0.5">
-                    Sends <code className="font-mono text-amber-400">expected_version: v{item.version - 1}</code> to prove HTTP 409 rejection and launch the Conflict Resolver modal.
-                  </p>
-                </div>
-                <input
-                  id="stale-toggle"
-                  type="checkbox"
-                  checked={simulateStaleVersion}
-                  onChange={(e) => setSimulateStaleVersion(e.target.checked)}
-                  className="w-4 h-4 rounded text-blue-600 focus:ring-0 focus:ring-offset-0 bg-[#090D16] border-gray-700"
-                />
+              {/* Collapsible Developer Concurrency Test Options */}
+              <div className="pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowDevOptions(!showDevOptions)}
+                  className="flex items-center justify-between w-full text-xs font-mono text-slate-500 hover:text-slate-800 py-1"
+                >
+                  <span>Developer Concurrency Test Options</span>
+                  {showDevOptions ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                </button>
+
+                {showDevOptions && (
+                  <div className="mt-2 p-3 rounded-lg bg-amber-50/70 border border-amber-200 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="font-mono font-bold text-amber-800 block">
+                        Simulate Stale Edit (expected_version: v{item.version - 1})
+                      </span>
+                      <p className="text-[11px] text-amber-700 font-sans mt-0.5">
+                        Forces a version mismatch to trigger the Side-by-Side OCC Conflict Resolver.
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={simulateStaleVersion}
+                      onChange={(e) => setSimulateStaleVersion(e.target.checked)}
+                      className="w-4 h-4 rounded text-amber-600 focus:ring-0 border-amber-300"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   onClick={handleUpdateOCC}
                   disabled={isSubmitting}
-                  className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs font-semibold disabled:opacity-50 transition-colors shadow-sm"
+                  className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold disabled:opacity-50 transition-all shadow-sm"
                 >
-                  {isSubmitting ? 'Submitting to PostgreSQL...' : 'Save Changes (OCC Verified)'}
+                  {isSubmitting ? 'Submitting...' : 'Save Changes (OCC Verified)'}
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Tab 2: Immutable Audit Trail */}
+        {/* Tab 2: Activity & Audit History */}
         {activeTab === 'audit' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono text-gray-400 uppercase">
-                Append-Only Audit Log ({auditEvents.length} events)
+              <span className="text-xs font-mono font-medium text-slate-500 uppercase">
+                Append-Only Audit Ledger ({auditEvents.length} events)
               </span>
               <button
                 onClick={loadAudit}
-                className="text-xs font-mono text-blue-400 hover:underline flex items-center gap-1"
+                className="text-xs font-medium text-blue-600 hover:underline flex items-center gap-1"
               >
                 <RotateCcw className="w-3 h-3" />
                 <span>Refresh</span>
@@ -621,23 +604,23 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
             </div>
 
             {isLoadingAudit ? (
-              <div className="py-8 text-center font-mono text-xs text-gray-500">
-                Loading audit trail...
+              <div className="py-12 text-center font-mono text-xs text-slate-400">
+                Loading audit ledger...
               </div>
             ) : auditEvents.length === 0 ? (
-              <div className="py-8 text-center font-mono text-xs text-gray-500">
-                No audit events recorded yet.
+              <div className="py-12 text-center font-mono text-xs text-slate-400">
+                No audit events recorded for this work item yet.
               </div>
             ) : (
-              <div className="relative border-l-2 border-gray-800 ml-3 space-y-5">
+              <div className="relative border-l-2 border-slate-200 ml-3 space-y-6">
                 {auditEvents.map((event) => (
-                  <div key={event.id} className="relative pl-5 text-xs font-mono">
-                    <div className="absolute -left-[9px] top-0.5 w-4 h-4 rounded-full bg-[#111827] border-2 border-blue-500 flex items-center justify-center" />
-                    <div className="flex items-center justify-between text-gray-400 text-[11px]">
+                  <div key={event.id} className="relative pl-6 text-xs">
+                    <div className="absolute -left-[9px] top-0.5 w-4 h-4 rounded-full bg-white border-2 border-blue-600 shadow-sm" />
+                    <div className="flex items-center justify-between text-slate-500 text-[11px] font-mono">
                       <div>
-                        <strong className="text-white">{event.actor_name || event.actor_id}</strong>{' '}
+                        <strong className="text-slate-900 font-sans">{event.actor_name || event.actor_id}</strong>{' '}
                         <span>performed</span>{' '}
-                        <span className="px-1.5 py-0.2 rounded bg-blue-950 text-blue-300 font-bold border border-blue-800/40">
+                        <span className="px-2 py-0.5 rounded font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">
                           {event.action}
                         </span>
                       </div>
@@ -650,26 +633,31 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
                       </span>
                     </div>
 
-                    <div className="mt-1 text-[11px] text-gray-300">
+                    <div className="mt-1 text-slate-700 text-xs">
                       Version transition:{' '}
-                      <span className="text-amber-400 font-bold">
+                      <span className="font-mono font-bold text-slate-900">
                         v{event.from_version ?? '-'}
                       </span>{' '}
-                      →{' '}
-                      <span className="text-emerald-400 font-bold">
+                      &rarr;{' '}
+                      <span className="font-mono font-bold text-emerald-600">
                         v{event.to_version ?? '-'}
                       </span>
                       {event.from_status && event.to_status && (
-                        <span className="ml-2 text-gray-400">
-                          ({event.from_status} → {event.to_status})
+                        <span className="ml-2 font-mono text-slate-500">
+                          ({event.from_status} &rarr; {event.to_status})
                         </span>
                       )}
                     </div>
 
                     {event.payload && Object.keys(event.payload).length > 0 && (
-                      <pre className="mt-1.5 p-2 rounded bg-[#090D16] border border-[#1F2937] text-[10px] text-gray-400 overflow-x-auto">
-                        {JSON.stringify(event.payload, null, 2)}
-                      </pre>
+                      <div className="mt-2 p-3 rounded-lg bg-slate-50 border border-slate-200 font-mono text-[11px] text-slate-700">
+                        {Object.entries(event.payload).map(([k, v]) => (
+                          <div key={k} className="flex gap-2">
+                            <span className="text-slate-400 font-semibold">{k}:</span>
+                            <span className="text-slate-800 truncate">{JSON.stringify(v)}</span>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                 ))}
@@ -678,96 +666,62 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
           </div>
         )}
 
-        {/* Tab 3: Transactional Outbox Activity */}
+        {/* Tab 3: Async Outbox & Comments */}
         {activeTab === 'outbox' && (
-          <div className="space-y-4 text-xs font-mono">
-            <div className="p-4 rounded bg-[#111827] border border-[#1F2937] space-y-3">
+          <div className="space-y-6 text-xs">
+            {/* Outbox Status Banner */}
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3 font-sans">
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-white">
-                  Transactional Outbox Pattern (SKIP LOCKED)
+                <span className="font-bold text-slate-900">
+                  Transactional Outbox Events
                 </span>
-                <span className="text-[10px] text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
-                  ZERO REDIS DEPENDENCY
+                <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                  ACID ENQUEUED
                 </span>
               </div>
-              <p className="text-gray-300 font-sans text-xs leading-relaxed">
-                When this work item was mutated, outbox events were inserted into the <code className="text-blue-300">outbox_jobs</code> table within the exact same ACID transaction. Background workers poll with:
+              <p className="text-slate-600 leading-relaxed text-xs">
+                Mutations on this item are written to <code className="font-mono text-blue-600 bg-blue-50 px-1 py-0.5 rounded">outbox_jobs</code> within the exact same database transaction, guaranteeing reliable downstream event publishing without Redis lock contention.
               </p>
-              <pre className="p-2.5 rounded bg-[#090D16] text-[11px] text-gray-300 border border-gray-800 overflow-x-auto">
-                {`SELECT * FROM outbox_jobs
-WHERE status = 'PENDING' AND next_attempt_at <= NOW()
-ORDER BY next_attempt_at ASC LIMIT 20
-FOR UPDATE SKIP LOCKED;`}
-              </pre>
-
-              <button
-                onClick={async () => {
-                  setIsSubmitting(true);
-                  try {
-                    const res = await api.triggerOutboxBatch(10);
-                    setSuccessBanner(
-                      `Outbox processed ${res.processed_count} jobs (${res.success_count} success, duration: ${res.duration_ms} ms).`
-                    );
-                  } catch (e: any) {
-                    setErrorBanner(e as ApiError);
-                  } finally {
-                    setIsSubmitting(false);
-                  }
-                }}
-                disabled={isSubmitting}
-                className="px-3.5 py-1.5 rounded bg-blue-600 hover:bg-blue-500 text-white font-medium transition-colors"
-              >
-                Trigger On-Demand Outbox Batch Run
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 4: Operational Notes & Comments */}
-        {activeTab === 'comments' && (
-          <div className="space-y-4">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Add operational handoff note..."
-                className="flex-1 bg-[#111827] border border-[#1F2937] rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 font-sans"
-                onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
-              />
-              <button
-                onClick={handleAddComment}
-                className="px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs flex items-center gap-1"
-              >
-                <Send className="w-3 h-3" />
-                <span>Post</span>
-              </button>
             </div>
 
-            <div className="space-y-2 text-xs">
-              {comments.map((c) => (
-                <div key={c.id} className="p-3 rounded bg-[#111827] border border-[#1F2937]">
-                  <div className="flex items-center justify-between text-gray-400 font-mono text-[10px] mb-1">
-                    <strong className="text-white">{c.author_name || c.author_id}</strong>
-                    <span>{new Date(c.created_at).toLocaleTimeString()}</span>
+            {/* Notes Section */}
+            <div className="space-y-3">
+              <span className="text-xs font-mono font-medium text-slate-500 uppercase block">
+                Collaborative Operational Notes
+              </span>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Leave operational handoff note..."
+                  className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500 focus:bg-white font-sans"
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
+                />
+                <button
+                  onClick={handleAddComment}
+                  className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium flex items-center gap-1 shadow-sm"
+                >
+                  <Send className="w-3 h-3" />
+                  <span>Post</span>
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {comments.map((c) => (
+                  <div key={c.id} className="p-3 rounded-lg bg-white border border-slate-200 shadow-subtle">
+                    <div className="flex items-center justify-between text-slate-400 font-mono text-[10px] mb-1">
+                      <strong className="text-slate-900 font-sans">{c.author_name || c.author_id}</strong>
+                      <span>{new Date(c.created_at).toLocaleTimeString()}</span>
+                    </div>
+                    <p className="text-slate-700 font-sans">{c.content}</p>
                   </div>
-                  <p className="text-gray-200 font-sans">{c.content}</p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         )}
       </div>
-
-      {/* 5-Way Concurrent Claim Race Modal */}
-      {showRaceModal && (
-        <RaceSimulationModal
-          workItem={item}
-          personas={personas}
-          onClose={() => setShowRaceModal(false)}
-          onItemUpdated={onItemUpdated}
-        />
-      )}
 
       {/* OCC Conflict Resolver Modal */}
       {conflictModalData && (

@@ -4,8 +4,6 @@ import {
   ArrowRight,
   RotateCcw,
   ShieldCheck,
-  CheckCircle,
-  AlertTriangle,
   User,
 } from 'lucide-react';
 import { WorkItem } from '../types';
@@ -28,7 +26,6 @@ export const WorkQueueTable: React.FC<WorkQueueTableProps> = ({
   items,
   selectedItem,
   onSelectItem,
-  nextCursor,
   hasMore,
   onNextPage,
   onResetPagination,
@@ -36,35 +33,35 @@ export const WorkQueueTable: React.FC<WorkQueueTableProps> = ({
   isLoading,
 }) => {
   return (
-    <div className="flex flex-col flex-1 min-h-0 bg-[#090D16]">
+    <div className="flex flex-col flex-1 min-h-0 bg-white">
       {/* Table Container */}
-      <div className="flex-1 overflow-auto border-b border-[#1F2937]">
+      <div className="flex-1 overflow-auto">
         <table className="w-full text-left border-collapse text-xs">
-          <thead className="sticky top-0 z-10 bg-[#0F172A] border-b border-[#1F2937] text-gray-400 font-mono text-[11px] uppercase tracking-wider">
+          <thead className="sticky top-0 z-10 bg-slate-50/90 backdrop-blur-sm border-b border-slate-200 text-slate-500 font-mono text-[11px] uppercase tracking-wider">
             <tr>
-              <th className="py-2.5 px-3 font-semibold">ID</th>
-              <th className="py-2.5 px-3 font-semibold">Version</th>
-              <th className="py-2.5 px-3 font-semibold">Title & Description</th>
-              <th className="py-2.5 px-3 font-semibold">Team</th>
-              <th className="py-2.5 px-3 font-semibold">Priority</th>
-              <th className="py-2.5 px-3 font-semibold">Status</th>
-              <th className="py-2.5 px-3 font-semibold">Assignee</th>
-              <th className="py-2.5 px-3 font-semibold text-right">Updated</th>
+              <th className="py-3 px-4 font-semibold">ID</th>
+              <th className="py-3 px-4 font-semibold">Version</th>
+              <th className="py-3 px-4 font-semibold">Operational Incident / Request</th>
+              <th className="py-3 px-4 font-semibold">Team</th>
+              <th className="py-3 px-4 font-semibold">Priority</th>
+              <th className="py-3 px-4 font-semibold">Status</th>
+              <th className="py-3 px-4 font-semibold">Assignee</th>
+              <th className="py-3 px-4 font-semibold text-right">Updated</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-800/40 font-sans">
+          <tbody className="divide-y divide-slate-100 font-sans">
             {isLoading && items.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-12 text-center text-gray-400 font-mono">
+                <td colSpan={8} className="py-16 text-center text-slate-500 font-mono">
                   <div className="inline-flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping" />
-                    Executing Keyset B-Tree Index Query...
+                    <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping" />
+                    Executing Keyset B-Tree Index Seek...
                   </div>
                 </td>
               </tr>
             ) : items.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-16 text-center text-gray-500 font-mono">
+                <td colSpan={8} className="py-20 text-center text-slate-400 font-mono">
                   No work items match current filter criteria.
                 </td>
               </tr>
@@ -75,76 +72,78 @@ export const WorkQueueTable: React.FC<WorkQueueTableProps> = ({
                   <tr
                     key={item.id}
                     onClick={() => onSelectItem(item)}
-                    className={`cursor-pointer transition-colors hover:bg-[#111827] ${
+                    className={`cursor-pointer transition-colors ${
                       isSelected
-                        ? 'bg-[#151D2F] border-l-2 border-l-blue-500'
-                        : ''
+                        ? 'bg-blue-50/70 border-l-2 border-l-blue-600'
+                        : 'hover:bg-slate-50/80'
                     }`}
                   >
                     {/* Item ID */}
-                    <td className="py-2 px-3 font-mono text-gray-300 font-medium whitespace-nowrap">
+                    <td className="py-3.5 px-4 font-mono text-slate-500 font-medium whitespace-nowrap">
                       {item.id}
                     </td>
 
                     {/* Version Badge (OCC) */}
-                    <td className="py-2 px-3 whitespace-nowrap">
-                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#1E293B] text-blue-300 border border-blue-900/40">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
                         v{item.version}
                       </span>
                     </td>
 
                     {/* Title & Approval Requirement */}
-                    <td className="py-2 px-3 max-w-md">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-medium text-white truncate max-w-sm">
+                    <td className="py-3.5 px-4 max-w-md">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-slate-900 truncate max-w-sm">
                           {item.title}
                         </span>
                         {item.requires_approval && (
                           <span
-                            className="inline-flex items-center text-[10px] font-mono text-purple-400 bg-purple-950/40 px-1 rounded border border-purple-800/40 flex-shrink-0"
+                            className="inline-flex items-center text-[10px] font-mono font-medium text-violet-700 bg-violet-50 px-1.5 py-0.5 rounded border border-violet-200 flex-shrink-0"
                             title="Requires independent peer approval before resolution"
                           >
-                            <ShieldCheck className="w-2.5 h-2.5 mr-0.5" />
+                            <ShieldCheck className="w-3 h-3 mr-1" />
                             APPROVAL_REQ
                           </span>
                         )}
                       </div>
                       {item.description && (
-                        <p className="text-[11px] text-gray-400 truncate max-w-sm font-sans mt-0.5">
+                        <p className="text-[11px] text-slate-500 truncate max-w-sm font-sans mt-0.5">
                           {item.description}
                         </p>
                       )}
                     </td>
 
                     {/* Owning Team */}
-                    <td className="py-2 px-3 whitespace-nowrap font-mono text-[11px] text-gray-300">
+                    <td className="py-3.5 px-4 whitespace-nowrap font-mono text-[11px] text-slate-600">
                       {item.owning_team_id.replace('team_', '').toUpperCase()}
                     </td>
 
                     {/* Priority */}
-                    <td className="py-2 px-3 whitespace-nowrap">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <PriorityBadge priority={item.priority} />
                     </td>
 
                     {/* Status */}
-                    <td className="py-2 px-3 whitespace-nowrap">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <StatusBadge status={item.status} size="sm" />
                     </td>
 
                     {/* Assignee */}
-                    <td className="py-2 px-3 whitespace-nowrap font-mono text-[11px]">
+                    <td className="py-3.5 px-4 whitespace-nowrap font-sans text-xs">
                       {item.assignee_id ? (
-                        <span className="inline-flex items-center gap-1 text-gray-200">
-                          <User className="w-3 h-3 text-blue-400" />
+                        <span className="inline-flex items-center gap-1.5 text-slate-800">
+                          <div className="w-5 h-5 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-bold font-mono">
+                            {(item.assignee_name || item.assignee_id).charAt(0)}
+                          </div>
                           <span>{item.assignee_name || item.assignee_id}</span>
                         </span>
                       ) : (
-                        <span className="text-gray-500 italic">Unassigned</span>
+                        <span className="text-slate-400 italic">Unassigned</span>
                       )}
                     </td>
 
                     {/* Updated At */}
-                    <td className="py-2 px-3 text-right font-mono text-[11px] text-gray-400 whitespace-nowrap">
+                    <td className="py-3.5 px-4 text-right font-mono text-[11px] text-slate-400 whitespace-nowrap">
                       {new Date(item.updated_at).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -160,36 +159,36 @@ export const WorkQueueTable: React.FC<WorkQueueTableProps> = ({
       </div>
 
       {/* Keyset Cursor Pagination & DB Metric Footer */}
-      <div className="bg-[#0B0F19] px-4 py-2 flex items-center justify-between text-xs font-mono text-gray-400 border-t border-[#1F2937]">
+      <div className="bg-slate-50/80 px-5 py-3 flex items-center justify-between text-xs font-mono text-slate-500 border-t border-slate-200">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 text-emerald-400">
-            <Clock className="w-3.5 h-3.5" />
-            <span className="tabular-nums">
-              DB Query: {queryTimeMs.toFixed(2)} ms
+          <div className="flex items-center gap-1.5 text-emerald-700">
+            <Clock className="w-3.5 h-3.5 text-emerald-600" />
+            <span className="tabular-nums font-semibold">
+              Query Time: {queryTimeMs.toFixed(2)} ms
             </span>
-            <span className="text-[10px] text-gray-500 font-sans">
+            <span className="text-[11px] text-slate-400 font-sans">
               (Keyset B-Tree O(1) Index Seek)
             </span>
           </div>
-          <span className="text-gray-600">|</span>
-          <span>Showing {items.length} items in view</span>
+          <span className="text-slate-300">|</span>
+          <span>Showing {items.length} items</span>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={onResetPagination}
             disabled={isLoading}
-            className="flex items-center gap-1 px-2.5 py-1 rounded bg-[#111827] hover:bg-[#1A2234] border border-[#1F2937] text-gray-300 disabled:opacity-40 transition-colors"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-medium disabled:opacity-40 transition-colors shadow-sm"
             title="Reset cursor back to the top of the queue"
           >
-            <RotateCcw className="w-3 h-3" />
+            <RotateCcw className="w-3 h-3 text-slate-500" />
             <span>Reset to Top</span>
           </button>
 
           <button
             onClick={onNextPage}
             disabled={!hasMore || isLoading}
-            className="flex items-center gap-1 px-3 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white font-medium disabled:opacity-40 disabled:bg-[#1E293B] disabled:text-gray-500 transition-colors"
+            className="flex items-center gap-1 px-3.5 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:opacity-40 disabled:bg-slate-200 disabled:text-slate-400 transition-colors shadow-sm"
             title="Fetch next keyset page using (updated_at, id) cursor"
           >
             <span>Next Page (Cursor)</span>

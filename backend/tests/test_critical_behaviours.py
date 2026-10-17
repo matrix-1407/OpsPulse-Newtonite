@@ -51,6 +51,8 @@ async def client() -> AsyncGenerator[httpx.AsyncClient, None]:
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://testserver", timeout=30.0) as c:
         yield c
+        # Clean up any synthetic test items created during testing so DB queue stays clean
+        await c.post("/api/v1/system/cleanup-test-artifacts")
     await close_pool()
 
 

@@ -304,3 +304,42 @@ async def trigger_outbox_batch(
         batch_size=batch_size,
         simulate_failure_job_id=simulate_failure_job_id,
     )
+
+
+@router.post("/system/cleanup-test-artifacts")
+async def cleanup_test_artifacts() -> Dict[str, Any]:
+    """
+    Purge synthetic test artifacts generated during verification/test runs.
+    Ensures the production operational queue displays pristine, realistic enterprise scenarios.
+    """
+    async with get_db_cursor(commit=True) as cur:
+        await cur.execute(
+            """
+            DELETE FROM outbox_jobs WHERE aggregate_id IN (
+                SELECT id FROM work_items
+                WHERE title ILIKE 'Test Item%'
+                   OR title ILIKE 'Mismatch Test%'
+                   OR title ILIKE 'Idempotency Test%'
+                   OR title ILIKE 'First Edit Wins%'
+                   OR title ILIKE 'Idempotent Network Retry%'
+                   OR title ILIKE 'Stale Edit Attempt%'
+                   OR title ILIKE 'Benchmark Concurrent Claim Test Item%'
+                   OR title ILIKE 'Malicious or Stale Overwrite Attempt%'
+            );
+            DELETE FROM work_items
+            WHERE title ILIKE 'Test Item%'
+               OR title ILIKE 'Mismatch Test%'
+               OR title ILIKE 'Idempotency Test%'
+               OR title ILIKE 'First Edit Wins%'
+               OR title ILIKE 'Idempotent Network Retry%'
+               OR title ILIKE 'Stale Edit Attempt%'
+               OR title ILIKE 'Benchmark Concurrent Claim Test Item%'
+               OR title ILIKE 'Malicious or Stale Overwrite Attempt%';
+            """
+        )
+
+    return {
+        "status": "SUCCESS",
+        "message": "All synthetic test artifacts purged from operational database.",
+    }
+

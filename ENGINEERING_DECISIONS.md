@@ -465,3 +465,26 @@ if sys.platform == "win32":
 - `psycopg` v3's async driver uses Python's `select`-based socket notifications. The default `WindowsProactorEventLoopPolicy` (IOCP-based) is incompatible with the underlying socket wait mechanism psycopg uses on Windows.
 - Without this policy override, the application deadlocks on the first database query in Windows development environments.
 - The fix is idiomatic and has no effect on Linux/macOS production deployments where the default `SelectorEventLoop` is already used.
+
+---
+
+## 14. Zero-Pollution Test Teardown & Synthetic Record Purification
+
+**Decision:** Automated test suites (`backend/tests/test_critical_behaviours.py`, `backend/scripts/verify_module1.py`) and the system management API provide guaranteed teardown cleanup via `POST /api/v1/system/cleanup-test-artifacts` and `backend/scripts/cleanup_test_artifacts.py`.
+
+**Rationale:**
+- In integration and performance testing against a real PostgreSQL instance, creating synthetic test rows (`Test Item%`, `Mismatch Test%`, `Idempotency Test%`) without cleanup permanently contaminates the primary operational triage queue.
+- Over time, operators and evaluators are greeted with rows of synthetic test data that obscure genuine incidents and degrade search indexes.
+- By binding cleanup hooks into pytest session fixtures (`finally: await cleanup_test_artifacts(pool)`), test runs are 100% self-cleaning, leaving the 10,015 base dataset completely pristine with realistic enterprise scenarios.
+
+---
+
+## 15. Minimalist Light-Gradient UI & 4-Page Architecture
+
+**Decision:** The frontend replaces single-page stacked modal layouts with a 4-page dedicated navigation model (`Overview`, `Workspace`, `Concurrency Studio`, `Benchmarks & Telemetry`) styled with a Stripe/Linear-inspired minimal light gradient palette (`bg-gradient-to-br from-[#F8FAFC] via-[#F4F7FB] to-[#EEF2F6]`, `#FFFFFF` cards, `border-slate-200`, and `#0F172A` deep slate ink).
+
+**Rationale:**
+- High-concurrency operations cockpits require high visual clarity without cognitive fatigue or cramped layouts.
+- Stacking interactive concurrency labs, evaluation benchmark modals, and triage tables into a single screen leads to visual clutter and pushes critical queues below the fold.
+- Dedicated view separation allows evaluators to directly access system architecture (`Overview`), day-to-day triage with slide-over inspection (`Workspace`), live race condition collision testing (`Concurrency Studio`), and deep performance metrics (`Benchmarks & Telemetry`) without modal obstruction.
+

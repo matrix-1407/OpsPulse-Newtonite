@@ -4,11 +4,11 @@
 
 @layer base {
   * {
-    border-color: #1F2937;
+    border-color: #E2E8F0;
   }
   body {
-    background-color: #090D16;
-    color: #F9FAFB;
+    background-color: #F8FAFC;
+    color: #0F172A;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 }
@@ -19,14 +19,14 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #090D16;
+  background: #F1F5F9;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1F2937;
+  background: #CBD5E1;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #374151;
+  background: #94A3B8;
 }
 
 /* Tabular figures for microsecond latencies and IDs */

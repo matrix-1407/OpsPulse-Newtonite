@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { api } from './api/client';
 import { Persona, Team, WorkItem } from './types';
-import { Navbar } from './components/Navbar';
+import { Navbar, NavTab } from './components/Navbar';
 import { FilterBar, QueuePreset } from './components/FilterBar';
 import { WorkQueueTable } from './components/WorkQueueTable';
 import { WorkItemDrawer } from './components/WorkItemDrawer';
-import { BenchmarkLabModal } from './components/BenchmarkLabModal';
 import { CreateWorkItemModal } from './components/CreateWorkItemModal';
-import { DualOperatorView } from './components/DualOperatorView';
+import { OverviewView } from './views/OverviewView';
+import { ConcurrencyStudioView } from './views/ConcurrencyStudioView';
+import { BenchmarksView } from './views/BenchmarksView';
 
 // Seeded personas fallback in case backend is initializing
 const SEEDED_PERSONAS: Persona[] = [
@@ -57,6 +58,9 @@ const SEEDED_TEAMS: Team[] = [
 ];
 
 export function App() {
+  // Navigation State (4 Dedicated Pages)
+  const [currentTab, setCurrentTab] = useState<NavTab>('overview');
+
   // Personas & Active Operator State
   const [personas, setPersonas] = useState<Persona[]>(SEEDED_PERSONAS);
   const [activePersona, setActivePersona] = useState<Persona>(SEEDED_PERSONAS[0]);
@@ -77,7 +81,7 @@ export function App() {
   // Keyset Pagination State
   const [workItems, setWorkItems] = useState<WorkItem[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
-  const [cursorHistory, setCursorHistory] = useState<string[]>([]);
+  const [, setCursorHistory] = useState<string[]>([]);
   const [hasMore, setHasMore] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -85,10 +89,8 @@ export function App() {
   const [selectedItem, setSelectedItem] = useState<WorkItem | null>(null);
   const [liveUpdatedId, setLiveUpdatedId] = useState<string | null>(null);
 
-  // Modals & Views
-  const [showBenchmarkModal, setShowBenchmarkModal] = useState(false);
+  // Create Modal
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [isDualView, setIsDualView] = useState(false);
 
   // Debounce search query input (300ms)
   useEffect(() => {
@@ -107,7 +109,7 @@ export function App() {
           setTotalItems(health.total_work_items);
         }
       } catch (e) {
-        // use default scale
+        // fallback to default scale
       }
 
       try {
@@ -278,80 +280,97 @@ export function App() {
     setTotalItems((prev) => prev + 1);
   };
 
+  const handleNavigateFromOverview = (tab: NavTab, targetPreset?: QueuePreset) => {
+    if (targetPreset) {
+      setPreset(targetPreset);
+    }
+    setCurrentTab(tab);
+  };
+
   return (
-    <div className="flex flex-col h-screen w-screen bg-[#090D16] text-[#F9FAFB] overflow-hidden selection:bg-blue-600 selection:text-white">
-      {/* 1. Command Bar & Multi-Persona Switcher */}
+    <div className="min-h-screen bg-gradient-to-br from-[#F8FAFC] via-[#F4F7FB] to-[#EEF2F6] text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white relative">
+      {/* Subtle top ambient radial glow */}
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(1200px_circle_at_50%_0%,rgba(255,255,255,0.85),transparent)] z-0" />
+
+      {/* 1. Persistent Top Navigation Bar */}
       <Navbar
+        currentTab={currentTab}
+        onSelectTab={setCurrentTab}
         personas={personas}
         activePersona={activePersona}
         onSelectPersona={setActivePersona}
-        totalItems={totalItems}
-        lastQueryLatencyMs={lastQueryLatencyMs}
-        onOpenBenchmark={() => setShowBenchmarkModal(true)}
-        isDualView={isDualView}
-        onToggleDualView={() => setIsDualView(!isDualView)}
         onOpenCreate={() => setShowCreateModal(true)}
       />
 
-      {/* 2. Dual-Operator Split Simulator (when toggled) */}
-      {isDualView && (
-        <DualOperatorView
-          personas={personas}
-          workItems={workItems}
-          onItemUpdated={handleItemUpdated}
-          onClose={() => setIsDualView(false)}
-        />
-      )}
-
-      {/* 3. Triage Filter Bar with Smart Queue Presets & GIN Search */}
-      <FilterBar
-        preset={preset}
-        onSelectPreset={setPreset}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        teams={teams}
-        selectedTeam={selectedTeam}
-        onSelectTeam={setSelectedTeam}
-        selectedStatus={selectedStatus}
-        onSelectStatus={setSelectedStatus}
-        selectedPriority={selectedPriority}
-        onSelectPriority={setSelectedPriority}
-        onResetFilters={handleResetFilters}
-      />
-
-      {/* 4. Keyset-Paginated Operational Work Queue Table */}
-      <main className="flex-1 flex flex-col min-h-0 relative">
-        <WorkQueueTable
-          items={workItems}
-          selectedItem={selectedItem}
-          onSelectItem={setSelectedItem}
-          nextCursor={cursor}
-          hasMore={hasMore}
-          onNextPage={handleNextPage}
-          onResetPagination={handleResetPagination}
-          queryTimeMs={lastQueryLatencyMs}
-          isLoading={isLoading}
-        />
-
-        {/* 5. Detail Inspector Drawer */}
-        {selectedItem && (
-          <WorkItemDrawer
-            item={selectedItem}
-            activePersona={activePersona}
-            personas={personas}
-            onClose={() => setSelectedItem(null)}
-            onItemUpdated={handleItemUpdated}
-            liveUpdatedId={liveUpdatedId}
+      {/* 2. Main Page Views Container */}
+      <div className="relative z-10 flex-1 flex flex-col min-h-0">
+        {currentTab === 'overview' && (
+          <OverviewView
+            onNavigate={handleNavigateFromOverview}
+            totalItems={totalItems}
+            lastLatencyMs={lastQueryLatencyMs}
           />
         )}
-      </main>
 
-      {/* 6. Concurrency & Scale Benchmark Lab Modal */}
-      {showBenchmarkModal && (
-        <BenchmarkLabModal onClose={() => setShowBenchmarkModal(false)} />
-      )}
+        {currentTab === 'workspace' && (
+          <div className="flex-1 flex flex-col min-h-0">
+            {/* Filter Bar */}
+            <FilterBar
+              preset={preset}
+              onSelectPreset={setPreset}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              teams={teams}
+              selectedTeam={selectedTeam}
+              onSelectTeam={setSelectedTeam}
+              selectedStatus={selectedStatus}
+              onSelectStatus={setSelectedStatus}
+              selectedPriority={selectedPriority}
+              onSelectPriority={setSelectedPriority}
+              onResetFilters={handleResetFilters}
+              lastLatencyMs={lastQueryLatencyMs}
+            />
 
-      {/* 7. New Work Item Creation Modal (with Idempotency Key Replay Test) */}
+            {/* Keyset Table and Slide-Over Drawer */}
+            <main className="flex-1 flex flex-col min-h-0 relative">
+              <WorkQueueTable
+                items={workItems}
+                selectedItem={selectedItem}
+                onSelectItem={setSelectedItem}
+                nextCursor={cursor}
+                hasMore={hasMore}
+                onNextPage={handleNextPage}
+                onResetPagination={handleResetPagination}
+                queryTimeMs={lastQueryLatencyMs}
+                isLoading={isLoading}
+              />
+
+              {/* Slide-Over Detail Drawer */}
+              {selectedItem && (
+                <WorkItemDrawer
+                  item={selectedItem}
+                  activePersona={activePersona}
+                  onClose={() => setSelectedItem(null)}
+                  onItemUpdated={handleItemUpdated}
+                  liveUpdatedId={liveUpdatedId}
+                />
+              )}
+            </main>
+          </div>
+        )}
+
+        {currentTab === 'concurrency' && (
+          <ConcurrencyStudioView
+            personas={personas}
+            workItems={workItems}
+            onItemUpdated={handleItemUpdated}
+          />
+        )}
+
+        {currentTab === 'benchmarks' && <BenchmarksView />}
+      </div>
+
+      {/* 3. New Work Item Creation Modal */}
       {showCreateModal && (
         <CreateWorkItemModal
           teams={teams}
