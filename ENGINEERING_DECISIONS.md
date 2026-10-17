@@ -69,6 +69,45 @@ SELECT * FROM work_items WHERE id = $1 FOR UPDATE;
 
 This entire read → check → update sequence runs inside a single ACID transaction.
 
+```mermaid
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'fontFamily': 'Inter, system-ui, -apple-system, sans-serif'
+  },
+  'sequence': {
+    'actorFontSize': 16,
+    'actorFontWeight': 700,
+    'noteFontSize': 14,
+    'noteFontWeight': 600,
+    'messageFontSize': 14,
+    'messageFontWeight': 600,
+    'width': 200,
+    'height': 45,
+    'boxMargin': 10,
+    'messageMargin': 30
+  }
+}}%%
+sequenceDiagram
+    autonumber
+    actor Op1 as 👤 Operator 1
+    actor Op2 as 👤 Operator 2
+    participant DB as 🐘 PostgreSQL (work_items)
+
+    Note over Op1, DB: Two operators attempt to claim wi_showcase_01 at the same time
+    Op1->>DB: BEGIN Tx 1; SELECT * WHERE id = 'wi_1' FOR UPDATE;
+    Note over DB: 🔒 Row Lock GRANTED to Tx 1
+    Op2->>DB: BEGIN Tx 2; SELECT * WHERE id = 'wi_1' FOR UPDATE;
+    Note over DB: ⏳ Tx 2 BLOCKED on DB lock
+
+    Op1->>DB: UPDATE SET assignee_id = 'usr_aarav', status = 'INVESTIGATING';
+    Op1->>DB: COMMIT Tx 1;
+    Note over DB: 🔓 Lock RELEASED
+
+    Note over DB: 🔒 Tx 2 unblocks & inspects row:<br/>assignee_id is NOT NULL!
+    DB-->>Op2: Returns HTTP 409 Conflict (ALREADY_CLAIMED)
+```
+
 **Rationale:**
 - Without row-level locking, two concurrent claim requests could both read `assignee_id IS NULL`, both pass the "available" check, and both execute an UPDATE, resulting in the same item claimed twice by different operators. This is the classic lost-update anomaly.
 - `FOR UPDATE` causes the second concurrent request to block at the DB level until the first commits or rolls back. The second then reads the committed `assignee_id` and correctly returns `409 ALREADY_CLAIMED`.
@@ -96,32 +135,53 @@ Network retries are a fundamental reality in distributed systems. Without idempo
 **Decision:** Work item status transitions are governed by an explicit directed acyclic graph (DAG) defined in `ALLOWED_TRANSITIONS`. Any transition not in the graph is rejected with `422 INVALID_TRANSITION`.
 
 ```mermaid
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'fontSize': '16px',
+    'fontFamily': 'Inter, system-ui, -apple-system, sans-serif'
+  }
+}}%%
 stateDiagram-v2
-    direction LR
-    [*] --> TRIAGE
-    TRIAGE --> INVESTIGATING : Claim (FOR UPDATE)
-    TRIAGE --> BLOCKED
-    TRIAGE --> CLOSED
+    direction TB
+    [*] --> TRIAGE : Task Created
+    
+    TRIAGE --> INVESTIGATING : Atomic Claim (FOR UPDATE)
+    TRIAGE --> BLOCKED : External Dependency
+    TRIAGE --> CLOSED : Rejected / Duplicate
     
     INVESTIGATING --> PENDING_APPROVAL : Submit for Review
-    INVESTIGATING --> RESOLVED : Direct (No Approval Needed)
-    INVESTIGATING --> BLOCKED
+    INVESTIGATING --> RESOLVED : Direct Resolve (requires_approval=False)
+    INVESTIGATING --> BLOCKED : Waiting on External Team
     
-    PENDING_APPROVAL --> APPROVED : Sign-off (RBAC + SoD)
+    PENDING_APPROVAL --> APPROVED : Independent Sign-off (RBAC + SoD)
     PENDING_APPROVAL --> INVESTIGATING : Changes Requested
-    PENDING_APPROVAL --> BLOCKED
+    PENDING_APPROVAL --> BLOCKED : Compliance Escalation
     
-    APPROVED --> RESOLVED : Pass Gate
-    APPROVED --> INVESTIGATING : Re-open (Resets to PENDING)
-    APPROVED --> BLOCKED
+    APPROVED --> RESOLVED : Complete Resolution
+    APPROVED --> INVESTIGATING : Re-open (Resets Approval to PENDING)
+    APPROVED --> BLOCKED : Pre-deployment Stop
     
-    BLOCKED --> INVESTIGATING
-    BLOCKED --> TRIAGE
+    BLOCKED --> INVESTIGATING : Dependency Cleared
+    BLOCKED --> TRIAGE : Return to Triage
     
-    RESOLVED --> CLOSED
-    RESOLVED --> INVESTIGATING : Re-open
+    RESOLVED --> CLOSED : Archive & Settle
+    RESOLVED --> INVESTIGATING : Bug Resurfaced (Re-open)
     
     CLOSED --> [*]
+
+    note right of APPROVED
+        <b>Approval Gatekeeper:</b>
+        Transition to RESOLVED requires
+        approval_status == 'APPROVED'.
+    end note
+
+    note left of INVESTIGATING
+        <b>Re-open Invalidation:</b>
+        Moving back to INVESTIGATING
+        resets approval_status to PENDING
+        and clears approved_by.
+    end note
 ```
 
 **Rationale:**
@@ -156,6 +216,38 @@ WHERE status = 'PENDING' AND next_attempt_at <= NOW()
 ORDER BY next_attempt_at ASC
 LIMIT 20
 FOR UPDATE SKIP LOCKED;
+```
+
+```mermaid
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'fontSize': '16px',
+    'fontFamily': 'Inter, system-ui, -apple-system, sans-serif'
+  },
+  'flowchart': {
+    'nodeSpacing': 30,
+    'rankSpacing': 40
+  }
+}}%%
+flowchart TD
+    Tx["🚀 API Request ACID Transaction"]
+    WItem["📋 work_items UPDATE"]
+    OJob["📬 outbox_jobs INSERT (status='PENDING')"]
+    
+    Tx -->|Atomically writes both| WItem
+    Tx -->|Atomically writes both| OJob
+
+    subgraph Workers ["Horizontal Worker Scaling (Zero Lock Contention)"]
+        Worker1["⚙️ Worker Node 1<br/><b>SELECT ... FOR UPDATE SKIP LOCKED</b><br/>Locks batch 1 (IDs 1-20)"]
+        Worker2["⚙️ Worker Node 2<br/><b>SELECT ... FOR UPDATE SKIP LOCKED</b><br/>Skips batch 1 & locks batch 2 (IDs 21-40)"]
+    end
+
+    OJob -.->|Concurrently polled| Worker1
+    OJob -.->|Concurrently polled| Worker2
+
+    Worker1 -->|Dispatches Events| EventBus["📡 SSE Stream & Webhooks"]
+    Worker2 -->|Dispatches Events| EventBus
 ```
 
 **Rationale:**
@@ -219,6 +311,46 @@ with a GIN index: `CREATE INDEX idx_work_items_search_vector ON work_items USING
 
 ```sql
 SELECT pg_try_advisory_xact_lock($computed_key);
+```
+
+```mermaid
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'fontFamily': 'Inter, system-ui, -apple-system, sans-serif'
+  },
+  'sequence': {
+    'actorFontSize': 16,
+    'actorFontWeight': 700,
+    'noteFontSize': 14,
+    'noteFontWeight': 600,
+    'messageFontSize': 14,
+    'messageFontWeight': 600,
+    'width': 210,
+    'height': 45,
+    'boxMargin': 10,
+    'messageMargin': 30
+  }
+}}%%
+sequenceDiagram
+    autonumber
+    actor Client as 🌐 Client
+    participant Req1 as 🚀 In-Flight Request 1
+    participant Req2 as 🚀 In-Flight Request 2 (Retry)
+    participant DB as 🐘 PostgreSQL Advisory Lock
+
+    Note over Client, DB: Rapid concurrent duplicate POST with Idempotency-Key: "idem-999"
+    Req1->>DB: SELECT pg_try_advisory_xact_lock(hash("idem-999:actor"))
+    Note over DB: 🔒 Lock ACQUIRED = TRUE
+    Req2->>DB: SELECT pg_try_advisory_xact_lock(hash("idem-999:actor"))
+    Note over DB: ⛔ Lock NOT Acquired = FALSE
+
+    Note over Req1: Executes mutation and inserts into idempotency_keys
+    Req1->>DB: COMMIT (Releases advisory lock);
+    Req1-->>Client: HTTP 201 Created (ID: wi_1)
+
+    Note over Req2: Serialized: Re-reads idempotency table and finds committed result
+    Req2-->>Client: HTTP 201 Created (X-Idempotent-Replay: true, ID: wi_1)
 ```
 
 The lock key is derived from `sha256(idempotency_key + actor_id)` truncated to a 64-bit integer. The advisory lock is automatically released when the transaction ends (commit or rollback). If a second concurrent request attempts the same lock, it fails to acquire and returns immediately, where the application-layer retry loop re-checks the idempotency table (which will now contain the committed result).

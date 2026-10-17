@@ -13,90 +13,81 @@ In high-growth engineering and operations organizations, cross-team incident rem
 **OpsPulse** replaces spreadsheet and chat-based coordination with a distributed state engine that delivers **5 beyond-CRUD guarantees** through raw ACID transactions, deterministic row-level locks, and zero-ORM magic.
 
 ```mermaid
-graph TB
-    %% Client & Interface Layer
-    subgraph ClientLayer ["1. Client & Operator Layer"]
-        Browser["🖥️ React Web Console / Operator UI<br/><i>(Live Dashboard, Keyset Scroll, Claim Button)</i>"]
-        CLI["⚙️ Automated Systems / API Clients<br/><i>(Incident Webhooks, Retry Daemons)</i>"]
-        SSEListener["📡 Real-Time SSE Listener<br/><i>(Live Incident Feed & Notifications)</i>"]
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'fontSize': '17px',
+    'fontFamily': 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
+    'primaryColor': '#EEF2FF',
+    'primaryTextColor': '#1E1B4B',
+    'primaryBorderColor': '#4338CA',
+    'lineColor': '#4338CA',
+    'secondaryColor': '#F0FDF4',
+    'tertiaryColor': '#FEF2F2'
+  },
+  'flowchart': {
+    'nodeSpacing': 35,
+    'rankSpacing': 45,
+    'curve': 'basis',
+    'htmlLabels': true
+  }
+}}%%
+flowchart TD
+    subgraph S1 ["1. Client & Operator Interface Tier"]
+        UI["🖥️ React Web Console<br/><b>Live Dashboard & Claim UI</b>"]
+        CLI["⚙️ Automated Systems<br/><b>Incident Ingestion Webhooks</b>"]
     end
 
-    %% FastAPI Application Layer
-    subgraph APILayer ["2. FastAPI Concurrency Engine"]
-        FastAPIApp["🚀 FastAPI Application (Uvicorn / ASGI Transport)"]
-        
-        subgraph MiddlewareStack ["Middleware & Security Interceptors"]
-            IdemMiddleware["🛡️ Idempotency Interceptor<br/><i>(pg_try_advisory_xact_lock + SHA-256 Hash)</i>"]
-            AuthContext["👤 Actor & Persona Context<br/><i>(X-Actor-Id Header + RBAC Resolver)</i>"]
-        end
-
-        subgraph APIRoutes ["API Router Endpoints"]
-            WorkItemsRouter["📋 /api/v1/work-items<br/><i>(CRUD, Keyset Pagination, GIN Search)</i>"]
-            ClaimRouter["🔒 /api/v1/work-items/{id}/claim<br/><i>(SELECT FOR UPDATE Atomic Lock)</i>"]
-            TransitionRouter["🔀 /api/v1/work-items/{id}/transition<br/><i>(DAG State Machine & Gatekeeper)</i>"]
-            ApproveRouter["✅ /api/v1/work-items/{id}/approve<br/><i>(RBAC & Separation of Duties)</i>"]
-            BenchmarkRouter["⚡ /api/v1/benchmarks/run<br/><i>(Live Concurrency Stress & Latency Test)</i>"]
-            EventsRouter["📡 /api/v1/events/stream<br/><i>(Server-Sent Events Broadcast)</i>"]
-        end
-
-        SSEBroadcaster["📢 In-Memory Broadcast Bus<br/><i>(asyncio.Queue Hub)</i>"]
-        OutboxWorker["🔄 Transactional Outbox Background Worker<br/><i>(Polling Loop: FOR UPDATE SKIP LOCKED)</i>"]
+    subgraph S2 ["2. FastAPI Concurrency Engine (Uvicorn / ASGI)"]
+        Ingress["🚀 API Ingress & Request Validation<br/><b>Strict Pydantic v2 & RFC 7807 Errors</b>"]
+        AdvisoryLock["🛡️ Advisory Lock Interceptor<br/><b>pg_try_advisory_xact_lock(hash)</b>"]
+        AuthContext["👤 Actor Identity & RBAC Resolver<br/><b>X-Actor-Id Header Evaluation</b>"]
     end
 
-    %% Domain & Concurrency Enforcement Layer
-    subgraph DomainLayer ["3. Domain & Concurrency Invariants"]
-        OCCEngine["⚖️ Optimistic Concurrency Control (OCC)<br/><i>WHERE id = $1 AND version = expected_version</i>"]
-        RowLockEngine["🔐 Row-Level Exclusive Lock<br/><i>SELECT * FROM work_items WHERE id = $1 FOR UPDATE</i>"]
-        DAGStateMachine["📐 Deterministic DAG Workflow Graph<br/><i>(Allowed Transitions & Invalidation Rules)</i>"]
-        SoDValidator["👥 Separation of Duties & RBAC<br/><i>(actor != assignee AND actor != creator)</i>"]
-        AdvisoryLockEngine["🔑 Distributed Advisory Locks<br/><i>(pg_try_advisory_xact_lock on Request Fingerprint)</i>"]
+    subgraph S3 ["3. Domain & Concurrency Invariant Enforcement"]
+        RowLock["🔒 Atomic Claim Engine<br/><b>SELECT ... FOR UPDATE</b>"]
+        OCC["⚖️ Optimistic Concurrency Control<br/><b>WHERE id = $1 AND version = $2</b>"]
+        StateMachine["📐 Deterministic Workflow State Machine<br/><b>Strict DAG & Approval Gatekeeper</b>"]
+        SoD["👥 Separation of Duties Validator<br/><b>actor != assignee AND actor != creator</b>"]
     end
 
-    %% Database & Storage Layer
-    subgraph DatabaseLayer ["4. PostgreSQL 16 Enterprise ACID Storage Engine"]
-        ConnPool["🏊 psycopg v3 AsyncConnectionPool<br/><i>(DictRow Factory, WindowsSelectorEventLoop)</i>"]
-
-        subgraph Tables ["Database Tables & Performance Indexes"]
-            TableWorkItems[("work_items<br/><i>• version (OCC Counter)<br/>• search_vector (GIN Indexed)<br/>• (updated_at, id) B-Tree Keyset</i>")]
-            TableAudit[("audit_events<br/><i>• Append-only immutable log<br/>• (work_item_id, created_at DESC)</i>")]
-            TableIdempotency[("idempotency_keys<br/><i>• UNIQUE(idempotency_key, actor_id)<br/>• Endpoint + SHA-256 payload hash</i>")]
-            TableOutbox[("outbox_jobs<br/><i>• Transactional event queue<br/>• Partial Index: WHERE status = 'PENDING'</i>")]
-            TableTeams[("teams & team_memberships<br/><i>• Resource-scoped RBAC roles:<br/>REQUESTER, OPERATOR, APPROVER, LEAD</i>")]
-        end
+    subgraph S4 ["4. PostgreSQL 16 Enterprise ACID Storage Engine"]
+        Pool["🏊 psycopg v3 AsyncConnectionPool<br/><b>(WindowsSelectorEventLoop on Win32)</b>"]
+        TWorkItems[("📋 work_items<br/><b>OCC version Counter | GIN search_vector<br/>(updated_at, id) B-Tree Keyset Index</b>")]
+        TAudit[("📜 audit_events<br/><b>Append-Only Immutable Audit Ledger</b>")]
+        TIdem[("🔑 idempotency_keys<br/><b>UNIQUE(idempotency_key, actor_id)</b>")]
+        TOutbox[("📬 outbox_jobs<br/><b>Partial Index: WHERE status = 'PENDING'</b>")]
     end
 
-    %% Connections - Client to API
-    Browser -->|HTTP REST Requests| FastAPIApp
-    CLI -->|HTTP Mutating Requests| FastAPIApp
-    FastAPIApp -->|Push Live Events| SSEBroadcaster
-    SSEBroadcaster -->|Server-Sent Events| SSEListener
-    SSEBroadcaster -->|Live UI Updates| Browser
+    subgraph S5 ["5. Background Workers & Real-Time Event Bus"]
+        Worker["🔄 Transactional Outbox Worker<br/><b>SELECT ... FOR UPDATE SKIP LOCKED</b>"]
+        SSEHub["📡 Real-Time SSE Broadcaster<br/><b>asyncio.Queue In-Memory Event Fan-Out</b>"]
+    end
 
-    %% Connections - API to Middleware & Routes
-    FastAPIApp --> MiddlewareStack
-    MiddlewareStack --> APIRoutes
+    %% Flow connections
+    UI -->|HTTP Requests| Ingress
+    CLI -->|HTTP Requests| Ingress
+    Ingress --> AdvisoryLock
+    AdvisoryLock --> AuthContext
 
-    %% Connections - Routes to Domain Logic
-    WorkItemsRouter --> OCCEngine
-    ClaimRouter --> RowLockEngine
-    TransitionRouter --> DAGStateMachine
-    ApproveRouter --> SoDValidator
-    IdemMiddleware --> AdvisoryLockEngine
+    AuthContext --> RowLock
+    AuthContext --> OCC
+    AuthContext --> StateMachine
+    AuthContext --> SoD
 
-    %% Connections - Domain to Database Pool
-    OCCEngine --> ConnPool
-    RowLockEngine --> ConnPool
-    DAGStateMachine --> ConnPool
-    SoDValidator --> ConnPool
-    AdvisoryLockEngine --> ConnPool
-    OutboxWorker --> ConnPool
+    RowLock --> Pool
+    OCC --> Pool
+    StateMachine --> Pool
+    SoD --> Pool
 
-    %% Connections - Pool to Tables
-    ConnPool --> TableWorkItems
-    ConnPool --> TableAudit
-    ConnPool --> TableIdempotency
-    ConnPool --> TableOutbox
-    ConnPool --> TableTeams
+    Pool --> TWorkItems
+    Pool --> TAudit
+    Pool --> TIdem
+    Pool --> TOutbox
+
+    TOutbox -.->|Polled every 500ms| Worker
+    Worker -->|Broadcast Dispatched Events| SSEHub
+    SSEHub -.->|Live SSE Stream| UI
 ```
 
 ---
@@ -106,7 +97,16 @@ graph TB
 Operational tasks navigate a strict directed graph. Illegal state transitions are rejected with `HTTP 422 INVALID_TRANSITION`. High-risk items require explicit peer approval, and re-opening any item automatically invalidates prior approvals to prevent bypasses.
 
 ```mermaid
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'fontSize': '16px',
+    'fontFamily': 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif'
+  }
+}}%%
 stateDiagram-v2
+    direction TB
+
     [*] --> TRIAGE : Task Created (POST /work-items)
     
     TRIAGE --> INVESTIGATING : Atomic Claim (SELECT FOR UPDATE)
@@ -158,43 +158,61 @@ stateDiagram-v2
 When multiple operators attempt to claim the same unassigned incident simultaneously, OpsPulse leverages PostgreSQL row-level locks to guarantee that **exactly one operator wins** and all concurrent competitors receive an explicit conflict without corrupting state.
 
 ```mermaid
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'fontFamily': 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif'
+  },
+  'sequence': {
+    'actorFontSize': 17,
+    'actorFontWeight': 700,
+    'noteFontSize': 15,
+    'noteFontWeight': 600,
+    'messageFontSize': 15,
+    'messageFontWeight': 600,
+    'width': 220,
+    'height': 48,
+    'boxMargin': 12,
+    'messageMargin': 35
+  }
+}}%%
 sequenceDiagram
     autonumber
-    actor Operator1 as 👤 Operator 1 (Aarav - Payments)
-    actor Operator2 as 👤 Operator 2 (Rohan - Payments)
+    actor Op1 as 👤 Operator 1 (Aarav)
+    actor Op2 as 👤 Operator 2 (Rohan)
     participant API as 🚀 FastAPI Server
-    participant DB as 🐘 PostgreSQL (work_items)
+    participant DB as 🐘 PostgreSQL 16
 
-    Note over Operator1, Operator2: Simultaneous Claim Request for wi_showcase_01
+    Note over Op1, Op2: Simultaneous Claim Request for wi_showcase_01
     par Operator 1 clicks Claim
-        Operator1->>API: POST /api/v1/work-items/wi_showcase_01/claim
-        API->>DB: BEGIN TRANSACTION
-        API->>DB: SELECT * FROM work_items WHERE id = 'wi_showcase_01' FOR UPDATE;
+        Op1->>API: POST /api/v1/work-items/wi_showcase_01/claim
+        API->>DB: BEGIN TRANSACTION;
+        API->>DB: SELECT * FROM work_items<br/>WHERE id = 'wi_showcase_01'<br/>FOR UPDATE;
         activate DB
-        Note over DB: 🔒 Row Lock ACQUIRED by Tx 1<br/>assignee_id is NULL
+        Note over DB: 🔒 Row Lock ACQUIRED by Tx 1<br/>(assignee_id is NULL)
     and Operator 2 clicks Claim
-        Operator2->>API: POST /api/v1/work-items/wi_showcase_01/claim
-        API->>DB: BEGIN TRANSACTION
-        API->>DB: SELECT * FROM work_items WHERE id = 'wi_showcase_01' FOR UPDATE;
-        Note over DB: ⏳ Tx 2 BLOCKS waiting for row lock
+        Op2->>API: POST /api/v1/work-items/wi_showcase_01/claim
+        API->>DB: BEGIN TRANSACTION;
+        API->>DB: SELECT * FROM work_items<br/>WHERE id = 'wi_showcase_01'<br/>FOR UPDATE;
+        Note over DB: ⏳ Tx 2 BLOCKS at DB level<br/>waiting for row lock
     end
 
-    Note over API, DB: Tx 1 completes mutations
-    API->>DB: UPDATE work_items SET assignee_id = 'usr_aarav', status = 'INVESTIGATING', version = version + 1;
-    API->>DB: INSERT INTO audit_events (action = 'CLAIMED', actor_id = 'usr_aarav');
-    API->>DB: INSERT INTO outbox_jobs (event_type = 'work_item_claimed');
+    Note over API, DB: Tx 1 applies mutations and commits
+    API->>DB: UPDATE work_items<br/>SET assignee_id = 'usr_aarav',<br/>status = 'INVESTIGATING', version = version + 1;
+    API->>DB: INSERT INTO audit_events (action = 'CLAIMED');
+    API->>DB: INSERT INTO outbox_jobs (event = 'work_item_claimed');
     API->>DB: COMMIT;
     deactivate DB
     Note over DB: 🔓 Lock RELEASED on commit
 
-    API-->>Operator1: HTTP 200 OK (Claimed successfully, Version: 2)
+    API-->>Op1: HTTP 200 OK (Claimed, Version: 2)
 
     activate DB
     Note over DB: 🔒 Tx 2 unblocks and reads committed row:<br/>assignee_id = 'usr_aarav' (NOT NULL!)
     API->>DB: ROLLBACK;
     deactivate DB
 
-    API-->>Operator2: HTTP 409 Conflict (ALREADY_CLAIMED: "Item already claimed by usr_aarav")
+    API-->>Op2: HTTP 409 Conflict<br/>(code: ALREADY_CLAIMED)
 ```
 
 ---
@@ -204,28 +222,46 @@ sequenceDiagram
 OpsPulse eliminates the "last-write-wins" hazard. Every mutating request requires an `expected_version`. If another operator has committed changes in the interim, the stale update is rejected with `HTTP 409 Conflict` containing the current state for live client reconciliation.
 
 ```mermaid
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'fontFamily': 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif'
+  },
+  'sequence': {
+    'actorFontSize': 17,
+    'actorFontWeight': 700,
+    'noteFontSize': 15,
+    'noteFontWeight': 600,
+    'messageFontSize': 15,
+    'messageFontWeight': 600,
+    'width': 220,
+    'height': 48,
+    'boxMargin': 12,
+    'messageMargin': 35
+  }
+}}%%
 sequenceDiagram
     autonumber
     actor EditorA as 👤 Operator A
     actor EditorB as 👤 Operator B
     participant API as 🚀 FastAPI Server
-    participant DB as 🐘 PostgreSQL (work_items)
+    participant DB as 🐘 PostgreSQL 16
 
     Note over EditorA, EditorB: Both load Item #wi_101 at Version 1
-    EditorA->>API: PATCH /work-items/wi_101 (expected_version: 1, priority: "CRITICAL")
-    API->>DB: UPDATE work_items SET priority = 'CRITICAL', version = 2 WHERE id = 'wi_101' AND version = 1 RETURNING *;
-    Note over DB: Row matched (version == 1) &rarr; Updated to version 2
+    EditorA->>API: PATCH /work-items/wi_101<br/>{expected_version: 1, priority: 'CRITICAL'}
+    API->>DB: UPDATE work_items<br/>SET priority = 'CRITICAL', version = version + 1<br/>WHERE id = 'wi_101' AND version = 1<br/>RETURNING *;
+    Note over DB: Row matched (version == 1)<br/>Updated to version 2
     DB-->>API: 1 row returned (version = 2)
     API-->>EditorA: HTTP 200 OK (Item updated, Version: 2)
 
-    Note over EditorB: Operator B submits edit with stale version 1
-    EditorB->>API: PATCH /work-items/wi_101 (expected_version: 1, title: "Updated Title")
-    API->>DB: UPDATE work_items SET title = 'Updated Title', version = 2 WHERE id = 'wi_101' AND version = 1 RETURNING *;
-    Note over DB: 0 rows matched! (Current DB version is 2, expected was 1)
+    Note over EditorB: Operator B submits edit with stale expected_version: 1
+    EditorB->>API: PATCH /work-items/wi_101<br/>{expected_version: 1, title: 'Updated Title'}
+    API->>DB: UPDATE work_items<br/>SET title = 'Updated Title', version = version + 1<br/>WHERE id = 'wi_101' AND version = 1<br/>RETURNING *;
+    Note over DB: 0 rows matched!<br/>(DB version is 2, expected was 1)
     DB-->>API: 0 rows returned
     API->>DB: SELECT * FROM work_items WHERE id = 'wi_101';
-    DB-->>API: Returns current state (version = 2, priority = "CRITICAL")
-    API-->>EditorB: HTTP 409 Conflict (STALE_VERSION_CONFLICT + current_state JSON)
+    DB-->>API: Returns live current row (version = 2, priority = 'CRITICAL')
+    API-->>EditorB: HTTP 409 Conflict<br/>(STALE_VERSION_CONFLICT + current_state JSON)
 ```
 
 ---
@@ -235,31 +271,49 @@ sequenceDiagram
 Network retries or rapid double-clicks can create concurrent in-flight requests before the first request commits to the `idempotency_keys` table. OpsPulse uses transaction-scoped PostgreSQL advisory locks keyed on the request fingerprint to eliminate this TOCTOU (Time-of-Check to Time-of-Use) window.
 
 ```mermaid
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'fontFamily': 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif'
+  },
+  'sequence': {
+    'actorFontSize': 17,
+    'actorFontWeight': 700,
+    'noteFontSize': 15,
+    'noteFontWeight': 600,
+    'messageFontSize': 15,
+    'messageFontWeight': 600,
+    'width': 220,
+    'height': 48,
+    'boxMargin': 12,
+    'messageMargin': 35
+  }
+}}%%
 sequenceDiagram
     autonumber
     actor Client as 🌐 Client Browser / Gateway
     participant API as 🚀 FastAPI Server
-    participant DB as 🐘 PostgreSQL
+    participant DB as 🐘 PostgreSQL 16
 
-    Note over Client, DB: Rapid Double-Click / Network Retry with Idempotency-Key: "req-abc-123"
+    Note over Client, DB: Rapid Double-Click / Network Retry with Idempotency-Key: 'req-abc-123'
     par Request 1 Arrives
-        Client->>API: POST /work-items (Idempotency-Key: "req-abc-123")
-        API->>DB: SELECT pg_try_advisory_xact_lock(hash("req-abc-123:usr_aarav"));
+        Client->>API: POST /work-items<br/>(Idempotency-Key: 'req-abc-123')
+        API->>DB: SELECT pg_try_advisory_xact_lock(<br/>hash('req-abc-123:usr_aarav'));
         Note over DB: 🔒 Lock ACQUIRED = TRUE
-        API->>DB: SELECT * FROM idempotency_keys WHERE key = 'req-abc-123';
+        API->>DB: SELECT * FROM idempotency_keys<br/>WHERE key = 'req-abc-123';
         Note over DB: Cache Miss (First Execution)
-        API->>DB: INSERT INTO work_items ...
-        API->>DB: INSERT INTO idempotency_keys (key, response_body) ...
-        API->>DB: COMMIT (Auto-releases Advisory Lock)
+        API->>DB: INSERT INTO work_items ...;
+        API->>DB: INSERT INTO idempotency_keys ...;
+        API->>DB: COMMIT (Auto-releases Advisory Lock);
         API-->>Client: HTTP 201 Created (ID: wi_999)
     and Request 2 Arrives (Concurrent In-Flight Retry)
-        Client->>API: POST /work-items (Idempotency-Key: "req-abc-123")
-        API->>DB: SELECT pg_try_advisory_xact_lock(hash("req-abc-123:usr_aarav"));
-        Note over DB: ⛔ Lock NOT Acquired = FALSE (Held by Request 1)
-        Note over API: Serialized: Waits for Request 1 transaction to commit
-        API->>DB: SELECT * FROM idempotency_keys WHERE key = 'req-abc-123';
+        Client->>API: POST /work-items<br/>(Idempotency-Key: 'req-abc-123')
+        API->>DB: SELECT pg_try_advisory_xact_lock(<br/>hash('req-abc-123:usr_aarav'));
+        Note over DB: ⛔ Lock NOT Acquired = FALSE<br/>(Held by Request 1)
+        Note over API: Serialized: Waits for Request 1 to commit
+        API->>DB: SELECT * FROM idempotency_keys<br/>WHERE key = 'req-abc-123';
         Note over DB: Cache HIT! Returns committed response
-        API-->>Client: HTTP 201 Created (X-Idempotent-Replay: true, ID: wi_999)
+        API-->>Client: HTTP 201 Created<br/>(X-Idempotent-Replay: true, ID: wi_999)
     end
 ```
 
@@ -270,10 +324,28 @@ sequenceDiagram
 OpsPulse avoids the dual-write hazard by writing events to an `outbox_jobs` table inside the same ACID transaction as the business entity. Background workers poll jobs concurrently without lock contention using `SKIP LOCKED`.
 
 ```mermaid
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'fontFamily': 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif'
+  },
+  'sequence': {
+    'actorFontSize': 17,
+    'actorFontWeight': 700,
+    'noteFontSize': 15,
+    'noteFontWeight': 600,
+    'messageFontSize': 15,
+    'messageFontWeight': 600,
+    'width': 220,
+    'height': 48,
+    'boxMargin': 12,
+    'messageMargin': 35
+  }
+}}%%
 sequenceDiagram
     autonumber
     participant MutatingAPI as 🚀 API Request Handler
-    participant DB as 🐘 PostgreSQL Storage
+    participant DB as 🐘 PostgreSQL 16
     participant Worker1 as ⚙️ Outbox Worker Node 1
     participant Worker2 as ⚙️ Outbox Worker Node 2
     participant EventBus as 📡 SSE / Webhook Dispatcher
@@ -281,21 +353,21 @@ sequenceDiagram
     Note over MutatingAPI, DB: Atomic Business Transaction
     MutatingAPI->>DB: BEGIN TRANSACTION;
     MutatingAPI->>DB: UPDATE work_items SET status = 'RESOLVED' ...;
-    MutatingAPI->>DB: INSERT INTO outbox_jobs (event_type, payload, status) VALUES ('resolved', {...}, 'PENDING');
+    MutatingAPI->>DB: INSERT INTO outbox_jobs (event_type, payload)<br/>VALUES ('resolved', {...});
     MutatingAPI->>DB: COMMIT;
     Note over DB: Both record and outbox event are guaranteed committed together!
 
     Note over Worker1, Worker2: Distributed Horizontal Outbox Processing
     par Worker 1 Polls
-        Worker1->>DB: SELECT id FROM outbox_jobs WHERE status = 'PENDING' LIMIT 10 FOR UPDATE SKIP LOCKED;
+        Worker1->>DB: SELECT id FROM outbox_jobs<br/>WHERE status = 'PENDING'<br/>LIMIT 10 FOR UPDATE SKIP LOCKED;
         Note over DB: Locks Jobs [101, 102] for Worker 1
         Worker1->>EventBus: Dispatch Event 101, 102
-        Worker1->>DB: UPDATE outbox_jobs SET status = 'COMPLETED' WHERE id IN (101, 102);
+        Worker1->>DB: UPDATE outbox_jobs SET status = 'COMPLETED'<br/>WHERE id IN (101, 102);
     and Worker 2 Polls Simultaneously
-        Worker2->>DB: SELECT id FROM outbox_jobs WHERE status = 'PENDING' LIMIT 10 FOR UPDATE SKIP LOCKED;
-        Note over DB: Skips Jobs [101, 102] &rarr; Locks Jobs [103, 104] for Worker 2
+        Worker2->>DB: SELECT id FROM outbox_jobs<br/>WHERE status = 'PENDING'<br/>LIMIT 10 FOR UPDATE SKIP LOCKED;
+        Note over DB: Skips Jobs [101, 102] &rarr;<br/>Locks Jobs [103, 104] for Worker 2
         Worker2->>EventBus: Dispatch Event 103, 104
-        Worker2->>DB: UPDATE outbox_jobs SET status = 'COMPLETED' WHERE id IN (103, 104);
+        Worker2->>DB: UPDATE outbox_jobs SET status = 'COMPLETED'<br/>WHERE id IN (103, 104);
     end
 ```
 
