@@ -357,17 +357,6 @@ export function App() {
                   queryTimeMs={lastQueryLatencyMs}
                   isLoading={isLoading}
                 />
-
-                {/* Slide-Over Detail Drawer */}
-                {selectedItem && (
-                  <WorkItemDrawer
-                    item={selectedItem}
-                    activePersona={activePersona}
-                    onClose={() => setSelectedItem(null)}
-                    onItemUpdated={handleItemUpdated}
-                    liveUpdatedId={liveUpdatedId}
-                  />
-                )}
               </main>
             </motion.div>
           )}
@@ -390,7 +379,18 @@ export function App() {
         </AnimatePresence>
       </div>
 
-      {/* 3. New Work Item Creation Modal */}
+      {/* 3. Slide-Over Detail Drawer (Root Level for fixed viewport positioning & escape handling) */}
+      {selectedItem && (
+        <WorkItemDrawer
+          item={selectedItem}
+          activePersona={activePersona}
+          onClose={() => setSelectedItem(null)}
+          onItemUpdated={handleItemUpdated}
+          liveUpdatedId={liveUpdatedId}
+        />
+      )}
+
+      {/* 4. New Work Item Creation Modal */}
       {showCreateModal && (
         <CreateWorkItemModal
           teams={teams}

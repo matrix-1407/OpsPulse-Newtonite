@@ -25,7 +25,7 @@ export const OCCConflictModal: React.FC<OCCConflictModalProps> = ({
   onClose,
 }) => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 dark:bg-black/75 backdrop-blur-sm animate-fade-in font-sans">
+    <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-900/40 dark:bg-black/75 backdrop-blur-sm animate-fade-in font-sans">
       <div className="w-full max-w-3xl rounded-2xl bg-white dark:bg-[#09090B] border border-slate-200 dark:border-white/[0.1] shadow-2xl overflow-hidden flex flex-col transition-colors duration-200">
         {/* Modal Header */}
         <div className="px-6 py-4 bg-rose-50/60 dark:bg-rose-950/20 border-b border-rose-100 dark:border-rose-900/40 flex items-center justify-between">
