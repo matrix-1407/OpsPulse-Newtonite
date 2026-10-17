@@ -16,23 +16,43 @@
   * {
     border-color: #E2E8F0;
   }
-  .dark * {
-    border-color: #1E293B;
+  .dark *,
+  .black-dark-mode * {
+    border-color: #27272A;
   }
   body {
     background-color: #F8FAFC;
     color: #0F172A;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
-  .dark body {
-    background-color: #0B0F19;
-    color: #F8FAFC;
+  .dark body,
+  .black-dark-mode body {
+    background-color: #000000;
+    background-image: 
+      radial-gradient(ellipse 90% 45% at 50% -10%, rgba(255, 255, 255, 0.04), transparent 100%),
+      linear-gradient(180deg, #000000 0%, #08080A 35%, #0F0F12 100%);
+    background-attachment: fixed;
+    color: #F4F4F5;
   }
 }
 
 /* Dark Mode Global Harmonization */
-.dark {
+.dark,
+.black-dark-mode {
   color-scheme: dark;
+}
+
+/* Premium Obsidian Black Gradient Utility Classes */
+.bg-black-gradient {
+  background: linear-gradient(145deg, #000000 0%, #08080A 50%, #121215 100%);
+}
+
+.bg-black-card {
+  background: linear-gradient(180deg, #0D0D10 0%, #060608 100%);
+}
+
+.border-black-subtle {
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 /* Custom scrollbars for high-density tables and logs */
@@ -44,21 +64,21 @@
   background: #F1F5F9;
 }
 .dark ::-webkit-scrollbar-track {
-  background: #0B0F19;
+  background: #000000;
 }
 ::-webkit-scrollbar-thumb {
   background: #CBD5E1;
   border-radius: 3px;
 }
 .dark ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #27272A;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #3F3F46;
 }
 
 /* Tabular figures for microsecond latencies and IDs */

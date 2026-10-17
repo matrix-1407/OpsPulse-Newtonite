@@ -262,30 +262,30 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
   const sodViolation = isAssignee || isCreator;
 
   return (
-    <div className="fixed inset-y-0 right-0 z-40 w-full max-w-2xl bg-white dark:bg-[#0E1526] border-l border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col font-sans animate-slide-left transition-colors duration-200">
+    <div className="fixed inset-y-0 right-0 z-40 w-full max-w-2xl bg-white dark:bg-[#09090B] border-l border-slate-200 dark:border-white/[0.08] shadow-2xl flex flex-col font-sans animate-slide-left transition-colors duration-200">
       {/* Top Header */}
-      <div className="p-5 bg-slate-50/90 dark:bg-[#111827]/90 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+      <div className="p-5 bg-slate-50/90 dark:bg-[#0E0E11]/90 border-b border-slate-200 dark:border-white/[0.08] flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="font-mono font-bold text-sm text-slate-800 dark:text-slate-100">
+          <span className="font-mono font-bold text-sm text-slate-800 dark:text-zinc-100">
             {item.id}
           </span>
-          <span className="px-2 py-0.5 rounded text-xs font-mono font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-sm">
+          <span className="px-2 py-0.5 rounded text-xs font-mono font-bold bg-white dark:bg-[#161619] text-slate-700 dark:text-zinc-200 border border-slate-200 dark:border-white/[0.08] shadow-sm">
             v{item.version}
           </span>
           {liveUpdatedId === item.id && (
-            <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 animate-pulse">
+            <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/80 animate-pulse">
               <Radio className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
               LIVE UPDATE
             </span>
           )}
-          <span className="text-slate-300 dark:text-slate-700">|</span>
+          <span className="text-slate-300 dark:text-zinc-700">|</span>
           <StatusBadge status={item.status} size="sm" />
           <PriorityBadge priority={item.priority} />
         </div>
 
         <button
           onClick={onClose}
-          className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-1"
+          className="text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 transition-colors p-1"
         >
           <X className="w-5 h-5" />
         </button>
@@ -344,13 +344,13 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
       )}
 
       {/* Primary Action Ribbon */}
-      <div className="p-4 bg-white dark:bg-[#0E1526] border-b border-slate-200/80 dark:border-slate-800 flex flex-wrap items-center gap-2">
+      <div className="p-4 bg-white dark:bg-[#09090B] border-b border-slate-200/80 dark:border-white/[0.08] flex flex-wrap items-center gap-2">
         {/* Atomic Claim Action */}
         {!item.assignee_id && item.status === 'TRIAGE' ? (
           <button
             onClick={handleClaim}
             disabled={isSubmitting}
-            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold disabled:opacity-50 transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-white dark:hover:bg-zinc-200 dark:text-black text-white text-xs font-semibold disabled:opacity-50 transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
           >
             <User className="w-3.5 h-3.5" />
             <span>Claim Request</span>
@@ -363,7 +363,7 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
             key={target}
             onClick={() => handleTransition(target)}
             disabled={isSubmitting}
-            className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-medium border border-slate-200 dark:border-slate-700 transition-all disabled:opacity-50 cursor-pointer"
+            className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200/80 dark:bg-[#141417] dark:hover:bg-[#1E1E22] text-slate-800 dark:text-zinc-200 text-xs font-medium border border-slate-200 dark:border-white/[0.08] transition-all disabled:opacity-50 cursor-pointer"
           >
             <span>{getActionLabel(target)}</span>
           </button>
@@ -387,13 +387,13 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
 
         {/* Peer Approval Action */}
         {item.status === 'PENDING_APPROVAL' && (
-          <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
+          <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-white/[0.08]">
             <button
               onClick={() => handleApprove('APPROVED')}
               disabled={isSubmitting}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer ${
                 sodViolation
-                  ? 'bg-violet-50 dark:bg-violet-950/50 border border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/60'
+                  ? 'bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-800/80 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/60'
                   : 'bg-emerald-600 hover:bg-emerald-700 text-white'
               }`}
               title={
@@ -409,7 +409,7 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
             <button
               onClick={() => handleApprove('REJECTED')}
               disabled={isSubmitting}
-              className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium cursor-pointer"
+              className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-[#141417] dark:hover:bg-[#1E1E22] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-zinc-300 text-xs font-medium cursor-pointer"
             >
               Reject
             </button>
@@ -418,13 +418,13 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
       </div>
 
       {/* Tabs */}
-      <div className="px-5 bg-slate-50/60 dark:bg-[#111827]/50 border-b border-slate-200 dark:border-slate-800 flex items-center gap-6 text-xs">
+      <div className="px-5 bg-slate-50/60 dark:bg-[#0A0A0D] border-b border-slate-200 dark:border-white/[0.08] flex items-center gap-6 text-xs">
         <button
           onClick={() => setActiveTab('details')}
           className={`py-3 border-b-2 font-medium transition-colors cursor-pointer ${
             activeTab === 'details'
-              ? 'border-blue-600 text-blue-600 dark:text-blue-400 font-semibold'
-              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              ? 'border-blue-600 dark:border-white text-blue-600 dark:text-white font-semibold'
+              : 'border-transparent text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
           }`}
         >
           Overview & Edit
@@ -433,8 +433,8 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
           onClick={() => setActiveTab('audit')}
           className={`py-3 border-b-2 font-medium transition-colors cursor-pointer ${
             activeTab === 'audit'
-              ? 'border-blue-600 text-blue-600 dark:text-blue-400 font-semibold'
-              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              ? 'border-blue-600 dark:border-white text-blue-600 dark:text-white font-semibold'
+              : 'border-transparent text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
           }`}
         >
           Activity & Audit History
@@ -443,8 +443,8 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
           onClick={() => setActiveTab('outbox')}
           className={`py-3 border-b-2 font-medium transition-colors cursor-pointer ${
             activeTab === 'outbox'
-              ? 'border-blue-600 text-blue-600 dark:text-blue-400 font-semibold'
-              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              ? 'border-blue-600 dark:border-white text-blue-600 dark:text-white font-semibold'
+              : 'border-transparent text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
           }`}
         >
           Async Outbox & Notes
@@ -457,84 +457,84 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
         {activeTab === 'details' && (
           <div className="space-y-6">
             {/* Metadata Summary Card */}
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#0D0D10] border border-slate-200/80 dark:border-white/[0.08] grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
               <div>
-                <span className="text-slate-400 dark:text-slate-500 text-[10px] uppercase font-semibold block">
+                <span className="text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold block">
                   Team
                 </span>
-                <span className="text-slate-900 dark:text-slate-100 font-semibold mt-0.5 block">
+                <span className="text-slate-900 dark:text-zinc-100 font-semibold mt-0.5 block">
                   {item.owning_team_id.replace('team_', '').toUpperCase()}
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 dark:text-slate-500 text-[10px] uppercase font-semibold block">
+                <span className="text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold block">
                   Assignee
                 </span>
-                <span className="text-slate-900 dark:text-slate-100 font-semibold mt-0.5 block truncate">
+                <span className="text-slate-900 dark:text-zinc-100 font-semibold mt-0.5 block truncate">
                   {item.assignee_name || item.assignee_id || 'Unassigned'}
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 dark:text-slate-500 text-[10px] uppercase font-semibold block">
+                <span className="text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold block">
                   Approval Status
                 </span>
-                <span className="font-semibold mt-0.5 block text-slate-700 dark:text-slate-300">
+                <span className="font-semibold mt-0.5 block text-slate-700 dark:text-zinc-300">
                   {item.approval_status}
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 dark:text-slate-500 text-[10px] uppercase font-semibold block">
+                <span className="text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold block">
                   OCC Version
                 </span>
-                <span className="text-blue-600 dark:text-blue-400 font-bold mt-0.5 block">
+                <span className="text-blue-600 dark:text-white font-bold mt-0.5 block">
                   v{item.version}
                 </span>
               </div>
             </div>
 
             {/* Edit Form */}
-            <div className="p-5 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-subtle space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-                <span className="text-xs font-semibold text-slate-900 dark:text-slate-100 uppercase tracking-wider font-mono">
+            <div className="p-5 rounded-xl bg-white dark:bg-[#0D0D10] border border-slate-200 dark:border-white/[0.08] shadow-subtle space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/[0.08]">
+                <span className="text-xs font-semibold text-slate-900 dark:text-zinc-100 uppercase tracking-wider font-mono">
                   Operational Parameters
                 </span>
-                <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
-                  expected_version: <strong className="text-blue-600 dark:text-blue-400">v{item.version}</strong>
+                <span className="text-xs font-mono text-slate-500 dark:text-zinc-400">
+                  expected_version: <strong className="text-blue-600 dark:text-white">v{item.version}</strong>
                 </span>
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">
+                <label className="text-xs font-medium text-slate-700 dark:text-zinc-300 block mb-1">
                   Title
                 </label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 font-sans"
+                  className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-white/[0.12] rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 focus:outline-none focus:border-white/30 focus:bg-white dark:focus:bg-black font-sans"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">
+                <label className="text-xs font-medium text-slate-700 dark:text-zinc-300 block mb-1">
                   Description
                 </label>
                 <textarea
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 font-sans"
+                  className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-white/[0.12] rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 focus:outline-none focus:border-white/30 focus:bg-white dark:focus:bg-black font-sans"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">
+                <label className="text-xs font-medium text-slate-700 dark:text-zinc-300 block mb-1">
                   Priority
                 </label>
                 <select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as Priority)}
-                  className="w-full bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 font-mono"
+                  className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-white/[0.12] rounded-lg px-3 py-2 text-xs font-medium text-slate-800 dark:text-zinc-200 focus:outline-none focus:border-white/30 focus:bg-white dark:focus:bg-black font-mono cursor-pointer"
                 >
                   <option value="CRITICAL">P0 CRITICAL</option>
                   <option value="HIGH">P1 HIGH</option>
@@ -544,18 +544,18 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
               </div>
 
               {/* Collapsible Developer Concurrency Test Options */}
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+              <div className="pt-2 border-t border-slate-100 dark:border-white/[0.08]">
                 <button
                   type="button"
                   onClick={() => setShowDevOptions(!showDevOptions)}
-                  className="flex items-center justify-between w-full text-xs font-mono text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 py-1 cursor-pointer"
+                  className="flex items-center justify-between w-full text-xs font-mono text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-200 py-1 cursor-pointer"
                 >
                   <span>Developer Concurrency Test Options</span>
                   {showDevOptions ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                 </button>
 
                 {showDevOptions && (
-                  <div className="mt-2 p-3 rounded-lg bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 flex items-center justify-between text-xs">
+                  <div className="mt-2 p-3 rounded-lg bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 flex items-center justify-between text-xs">
                     <div>
                       <span className="font-mono font-bold text-amber-800 dark:text-amber-300 block">
                         Simulate Stale Edit (expected_version: v{item.version - 1})
@@ -578,7 +578,7 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
                 <button
                   onClick={handleUpdateOCC}
                   disabled={isSubmitting}
-                  className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold disabled:opacity-50 transition-all shadow-sm cursor-pointer"
+                  className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-white dark:hover:bg-zinc-200 dark:text-black text-white text-xs font-semibold disabled:opacity-50 transition-all shadow-sm cursor-pointer"
                 >
                   {isSubmitting ? 'Submitting...' : 'Save Changes (OCC Verified)'}
                 </button>
@@ -591,12 +591,12 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
         {activeTab === 'audit' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono font-medium text-slate-500 dark:text-slate-400 uppercase">
+              <span className="text-xs font-mono font-medium text-slate-500 dark:text-zinc-400 uppercase">
                 Append-Only Audit Ledger ({auditEvents.length} events)
               </span>
               <button
                 onClick={loadAudit}
-                className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
+                className="text-xs font-medium text-blue-600 dark:text-white hover:underline flex items-center gap-1 cursor-pointer"
               >
                 <RotateCcw className="w-3 h-3" />
                 <span>Refresh</span>
@@ -604,23 +604,23 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
             </div>
 
             {isLoadingAudit ? (
-              <div className="py-12 text-center font-mono text-xs text-slate-400">
+              <div className="py-12 text-center font-mono text-xs text-slate-400 dark:text-zinc-500">
                 Loading audit ledger...
               </div>
             ) : auditEvents.length === 0 ? (
-              <div className="py-12 text-center font-mono text-xs text-slate-400">
+              <div className="py-12 text-center font-mono text-xs text-slate-400 dark:text-zinc-500">
                 No audit events recorded for this work item yet.
               </div>
             ) : (
-              <div className="relative border-l-2 border-slate-200 dark:border-slate-800 ml-3 space-y-6">
+              <div className="relative border-l-2 border-slate-200 dark:border-white/[0.08] ml-3 space-y-6">
                 {auditEvents.map((event) => (
                   <div key={event.id} className="relative pl-6 text-xs">
-                    <div className="absolute -left-[9px] top-0.5 w-4 h-4 rounded-full bg-white dark:bg-slate-900 border-2 border-blue-600 shadow-sm" />
-                    <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[11px] font-mono">
+                    <div className="absolute -left-[9px] top-0.5 w-4 h-4 rounded-full bg-white dark:bg-black border-2 border-blue-600 dark:border-white shadow-sm" />
+                    <div className="flex items-center justify-between text-slate-500 dark:text-zinc-400 text-[11px] font-mono">
                       <div>
-                        <strong className="text-slate-900 dark:text-slate-100 font-sans">{event.actor_name || event.actor_id}</strong>{' '}
+                        <strong className="text-slate-900 dark:text-zinc-100 font-sans">{event.actor_name || event.actor_id}</strong>{' '}
                         <span>performed</span>{' '}
-                        <span className="px-2 py-0.5 rounded font-mono font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                        <span className="px-2 py-0.5 rounded font-mono font-bold bg-blue-50 dark:bg-zinc-800 text-blue-700 dark:text-zinc-200 border border-blue-200 dark:border-white/[0.08]">
                           {event.action}
                         </span>
                       </div>
@@ -633,9 +633,9 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
                       </span>
                     </div>
 
-                    <div className="mt-1 text-slate-700 dark:text-slate-300 text-xs">
+                    <div className="mt-1 text-slate-700 dark:text-zinc-300 text-xs">
                       Version transition:{' '}
-                      <span className="font-mono font-bold text-slate-900 dark:text-slate-100">
+                      <span className="font-mono font-bold text-slate-900 dark:text-zinc-100">
                         v{event.from_version ?? '-'}
                       </span>{' '}
                       &rarr;{' '}
@@ -643,18 +643,18 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
                         v{event.to_version ?? '-'}
                       </span>
                       {event.from_status && event.to_status && (
-                        <span className="ml-2 font-mono text-slate-500 dark:text-slate-400">
+                        <span className="ml-2 font-mono text-slate-500 dark:text-zinc-400">
                           ({event.from_status} &rarr; {event.to_status})
                         </span>
                       )}
                     </div>
 
                     {event.payload && Object.keys(event.payload).length > 0 && (
-                      <div className="mt-2 p-3 rounded-lg bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 font-mono text-[11px] text-slate-700 dark:text-slate-300">
+                      <div className="mt-2 p-3 rounded-lg bg-slate-50 dark:bg-black border border-slate-200 dark:border-white/[0.08] font-mono text-[11px] text-slate-700 dark:text-zinc-300">
                         {Object.entries(event.payload).map(([k, v]) => (
                           <div key={k} className="flex gap-2">
-                            <span className="text-slate-400 dark:text-slate-500 font-semibold">{k}:</span>
-                            <span className="text-slate-800 dark:text-slate-200 truncate">{JSON.stringify(v)}</span>
+                            <span className="text-slate-400 dark:text-zinc-500 font-semibold">{k}:</span>
+                            <span className="text-slate-800 dark:text-zinc-200 truncate">{JSON.stringify(v)}</span>
                           </div>
                         ))}
                       </div>
@@ -670,23 +670,23 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
         {activeTab === 'outbox' && (
           <div className="space-y-6 text-xs">
             {/* Outbox Status Banner */}
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 space-y-3 font-sans">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#0D0D10] border border-slate-200/80 dark:border-white/[0.08] space-y-3 font-sans">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-slate-900 dark:text-slate-100">
+                <span className="font-bold text-slate-900 dark:text-zinc-100">
                   Transactional Outbox Events
                 </span>
-                <span className="text-[10px] font-mono font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                <span className="text-[10px] font-mono font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/80">
                   ACID ENQUEUED
                 </span>
               </div>
-              <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-xs">
-                Mutations on this item are written to <code className="font-mono text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-1 py-0.5 rounded">outbox_jobs</code> within the exact same database transaction, guaranteeing reliable downstream event publishing without Redis lock contention.
+              <p className="text-slate-600 dark:text-zinc-400 leading-relaxed text-xs">
+                Mutations on this item are written to <code className="font-mono text-blue-600 dark:text-zinc-200 bg-blue-50 dark:bg-zinc-800 px-1 py-0.5 rounded">outbox_jobs</code> within the exact same database transaction, guaranteeing reliable downstream event publishing without Redis lock contention.
               </p>
             </div>
 
             {/* Notes Section */}
             <div className="space-y-3">
-              <span className="text-xs font-mono font-medium text-slate-500 dark:text-slate-400 uppercase block">
+              <span className="text-xs font-mono font-medium text-slate-500 dark:text-zinc-400 uppercase block">
                 Collaborative Operational Notes
               </span>
               <div className="flex gap-2">
@@ -695,12 +695,12 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="Leave operational handoff note..."
-                  className="flex-1 bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 font-sans"
+                  className="flex-1 bg-slate-50 dark:bg-black border border-slate-200 dark:border-white/[0.12] rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 focus:outline-none focus:border-white/30 focus:bg-white dark:focus:bg-black font-sans"
                   onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
                 />
                 <button
                   onClick={handleAddComment}
-                  className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium flex items-center gap-1 shadow-sm cursor-pointer"
+                  className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-white dark:hover:bg-zinc-200 dark:text-black text-white text-xs font-medium flex items-center gap-1 shadow-sm cursor-pointer"
                 >
                   <Send className="w-3 h-3" />
                   <span>Post</span>
@@ -709,12 +709,12 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
 
               <div className="space-y-2">
                 {comments.map((c) => (
-                  <div key={c.id} className="p-3 rounded-lg bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-subtle">
-                    <div className="flex items-center justify-between text-slate-400 dark:text-slate-500 font-mono text-[10px] mb-1">
-                      <strong className="text-slate-900 dark:text-slate-100 font-sans">{c.author_name || c.author_id}</strong>
+                  <div key={c.id} className="p-3 rounded-lg bg-white dark:bg-[#0D0D10] border border-slate-200 dark:border-white/[0.08] shadow-subtle">
+                    <div className="flex items-center justify-between text-slate-400 dark:text-zinc-500 font-mono text-[10px] mb-1">
+                      <strong className="text-slate-900 dark:text-zinc-100 font-sans">{c.author_name || c.author_id}</strong>
                       <span>{new Date(c.created_at).toLocaleTimeString()}</span>
                     </div>
-                    <p className="text-slate-700 dark:text-slate-300 font-sans">{c.content}</p>
+                    <p className="text-slate-700 dark:text-zinc-300 font-sans">{c.content}</p>
                   </div>
                 ))}
               </div>

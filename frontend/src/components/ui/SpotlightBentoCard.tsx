@@ -31,7 +31,7 @@ export const SpotlightBentoCard: React.FC<SpotlightBentoCardProps> = ({
       onClick={onClick}
       whileHover={{ y: -2 }}
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-      className={`group relative overflow-hidden rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 shadow-[0_1px_3px_rgba(15,23,42,0.03),0_6px_16px_rgba(15,23,42,0.02)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)] transition-shadow hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)] dark:hover:shadow-[0_8px_28px_rgba(0,0,0,0.6)] hover:border-slate-300/90 dark:hover:border-slate-700 ${
+      className={`group relative overflow-hidden rounded-2xl bg-white dark:bg-[#09090B] border border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(15,23,42,0.03),0_6px_16px_rgba(15,23,42,0.02)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.7)] transition-all hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)] dark:hover:shadow-[0_8px_32px_rgba(0,0,0,0.85)] hover:border-slate-300/90 dark:hover:border-white/[0.2] ${
         onClick ? 'cursor-pointer' : ''
       } ${className}`}
     >

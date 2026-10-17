@@ -296,9 +296,9 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F8FAFC] via-[#F4F7FB] to-[#EEF2F6] dark:from-[#0B0F19] dark:via-[#0E1526] dark:to-[#111827] text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white relative transition-colors duration-200">
-      {/* Subtle top ambient radial glow */}
-      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(1200px_circle_at_50%_0%,rgba(255,255,255,0.85),transparent)] dark:bg-[radial-gradient(1200px_circle_at_50%_0%,rgba(37,99,235,0.08),transparent)] z-0" />
+    <div className="min-h-screen bg-gradient-to-br from-[#F8FAFC] via-[#F4F7FB] to-[#EEF2F6] dark:from-[#000000] dark:via-[#08080A] dark:to-[#121215] text-slate-900 dark:text-zinc-100 flex flex-col font-sans selection:bg-slate-300 dark:selection:bg-zinc-800 dark:selection:text-zinc-100 relative transition-colors duration-500">
+      {/* Subtle top ambient radial glow — clean monochrome highlight with zero blue tint */}
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(1200px_circle_at_50%_0%,rgba(255,255,255,0.85),transparent)] dark:bg-[radial-gradient(1200px_circle_at_50%_0%,rgba(255,255,255,0.03),transparent)] z-0" />
 
       {/* 1. Persistent Top Navigation Bar */}
       <Navbar

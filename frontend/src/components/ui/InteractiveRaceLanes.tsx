@@ -36,13 +36,13 @@ export const InteractiveRaceLanes: React.FC<InteractiveRaceLanesProps> = ({
                   className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
                     isWinner
                       ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                      : 'bg-slate-100 dark:bg-[#161619] text-slate-600 dark:text-zinc-300 border border-slate-200 dark:border-white/[0.08]'
                   }`}
                 >
                   {lane.actorName.charAt(0)}
                 </div>
-                <span className="font-semibold text-slate-800 dark:text-slate-200 text-xs">{lane.actorName}</span>
-                <span className="text-slate-400 dark:text-slate-500 font-mono text-[10px]">({lane.actorId})</span>
+                <span className="font-semibold text-slate-800 dark:text-zinc-200 text-xs">{lane.actorName}</span>
+                <span className="text-slate-400 dark:text-zinc-500 font-mono text-[10px]">({lane.actorId})</span>
               </div>
               <div className="flex items-center gap-2">
                 {isWinner ? (
@@ -51,23 +51,23 @@ export const InteractiveRaceLanes: React.FC<InteractiveRaceLanesProps> = ({
                     LOCK ACQUIRED
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40">
                     <XCircle className="w-3 h-3" />
                     409 ALREADY_CLAIMED
                   </span>
                 )}
-                <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400 tabular-nums">
+                <span className="font-mono text-[10px] text-slate-500 dark:text-zinc-400 tabular-nums">
                   {lane.latencyMs} ms
                 </span>
               </div>
             </div>
 
             {/* Animated Race Track */}
-            <div className="relative h-3 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+            <div className="relative h-3 rounded-full overflow-hidden bg-slate-100 dark:bg-[#121215] border border-slate-200/60 dark:border-white/[0.08]">
               {/* Lock Barrier Line at 82% */}
               {!isWinner && (
                 <div
-                  className="absolute top-0 bottom-0 w-px bg-slate-400/60 dark:bg-slate-500/80 z-10"
+                  className="absolute top-0 bottom-0 w-px bg-slate-400/60 dark:bg-zinc-600 z-10"
                   style={{ left: '82%' }}
                 />
               )}
@@ -86,7 +86,7 @@ export const InteractiveRaceLanes: React.FC<InteractiveRaceLanesProps> = ({
                 className={`h-full w-full rounded-full ${
                   isWinner
                     ? 'bg-gradient-to-r from-emerald-400 to-emerald-500'
-                    : 'bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-600 dark:to-slate-700'
+                    : 'bg-gradient-to-r from-slate-300 to-slate-400 dark:from-zinc-700 dark:to-zinc-800'
                 }`}
               />
 
@@ -107,9 +107,9 @@ export const InteractiveRaceLanes: React.FC<InteractiveRaceLanesProps> = ({
       })}
 
       {/* Lock Barrier Legend */}
-      <div className="flex items-center gap-3 pt-1 text-[10px] font-mono text-slate-500 dark:text-slate-400">
+      <div className="flex items-center gap-3 pt-1 text-[10px] font-mono text-slate-500 dark:text-zinc-400">
         <div className="flex items-center gap-1">
-          <div className="w-3 h-px bg-slate-400 dark:bg-slate-500" />
+          <div className="w-3 h-px bg-slate-400 dark:bg-zinc-600" />
           <span>SELECT ... FOR UPDATE barrier (82%)</span>
         </div>
         <div className="flex items-center gap-1">

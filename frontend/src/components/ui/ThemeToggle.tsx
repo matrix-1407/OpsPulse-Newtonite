@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sliders, Check, Sparkles, Sun, Moon } from 'lucide-react';
+import { Sliders, Check } from 'lucide-react';
 
 export type AnimationVariant = 'circle' | 'rectangle' | 'polygon' | 'circle-blur';
 export type AnimationStart =
@@ -79,7 +79,7 @@ export function createAnimation(
 
   if (variant === 'circle') {
     keyframes = `
-      @keyframes skiper-theme-transition {
+      @keyframes opspulse-theme-transition {
         from {
           clip-path: circle(0px at ${coords});
           ${blur ? 'filter: blur(16px);' : ''}
@@ -92,7 +92,7 @@ export function createAnimation(
     `;
   } else if (variant === 'circle-blur') {
     keyframes = `
-      @keyframes skiper-theme-transition {
+      @keyframes opspulse-theme-transition {
         0% {
           clip-path: circle(0px at ${coords});
           filter: blur(28px) brightness(1.2);
@@ -117,7 +117,7 @@ export function createAnimation(
     }
 
     keyframes = `
-      @keyframes skiper-theme-transition {
+      @keyframes opspulse-theme-transition {
         from {
           clip-path: ${fromInset};
           ${blur ? 'filter: blur(16px);' : ''}
@@ -130,7 +130,7 @@ export function createAnimation(
     `;
   } else if (variant === 'polygon') {
     keyframes = `
-      @keyframes skiper-theme-transition {
+      @keyframes opspulse-theme-transition {
         0% {
           clip-path: polygon(100% 0%, 100% 0%, 100% 0%, 100% 0%);
           ${blur ? 'filter: blur(18px);' : ''}
@@ -153,7 +153,7 @@ export function createAnimation(
       z-index: 1;
     }
     ::view-transition-new(root) {
-      animation: skiper-theme-transition 0.65s var(--expo-out);
+      animation: opspulse-theme-transition 0.95s var(--expo-out);
       z-index: 99999;
     }
   `;
@@ -190,9 +190,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Sync initial class on mount
   useEffect(() => {
     if (isDark) {
-      document.documentElement.classList.add('dark');
+      document.documentElement.classList.add('dark', 'black-dark-mode');
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove('dark', 'black-dark-mode');
     }
   }, []);
 
@@ -213,10 +213,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (!doc.startViewTransition) {
       // Fallback if browser doesn't support View Transition API
       if (nextIsDark) {
-        document.documentElement.classList.add('dark');
+        document.documentElement.classList.add('dark', 'black-dark-mode');
         localStorage.setItem('opspulse-theme', 'dark');
       } else {
-        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.remove('dark', 'black-dark-mode');
         localStorage.setItem('opspulse-theme', 'light');
       }
       setIsDark(nextIsDark);
@@ -226,10 +226,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // 2. Synchronous DOM mutation inside startViewTransition
     const transition = doc.startViewTransition(() => {
       if (nextIsDark) {
-        document.documentElement.classList.add('dark');
+        document.documentElement.classList.add('dark', 'black-dark-mode');
         localStorage.setItem('opspulse-theme', 'dark');
       } else {
-        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.remove('dark', 'black-dark-mode');
         localStorage.setItem('opspulse-theme', 'light');
       }
       setIsDark(nextIsDark);
@@ -292,30 +292,30 @@ export const ThemeToggleButton: React.FC<{ className?: string }> = ({ className 
         onClick={toggleTheme}
         aria-label={`Switch to ${isDark ? 'Light' : 'Dark'} Mode`}
         title={`Switch to ${isDark ? 'Light' : 'Dark'} Mode (View Transition: ${variant})`}
-        className="w-9 h-9 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 shadow-sm flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700/70 transition-all cursor-pointer active:scale-95 group focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+        className="w-9 h-9 rounded-full bg-white dark:bg-[#121214] border border-slate-200 dark:border-white/[0.12] shadow-sm flex items-center justify-center hover:bg-slate-50 dark:hover:bg-[#1C1C20] transition-all cursor-pointer active:scale-95 group focus:outline-none focus:ring-2 focus:ring-white/20"
       >
-        {/* Crisp Yin-Yang SVG with smooth 180deg rotation */}
+        {/* Crisp Yin-Yang SVG with smooth 180deg rotation at refined speed */}
         <svg
           viewBox="0 0 24 24"
-          className={`w-4 h-4 transition-transform duration-500 ${isDark ? 'rotate-180' : 'rotate-0'}`}
+          className={`w-4 h-4 transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${isDark ? 'rotate-180' : 'rotate-0'}`}
         >
           {/* Outer circle: black in light mode, white in dark mode */}
           <circle
             cx="12"
             cy="12"
             r="10"
-            className="fill-slate-900 stroke-slate-900 dark:fill-slate-100 dark:stroke-slate-100"
+            className="fill-slate-900 stroke-slate-900 dark:fill-white dark:stroke-white"
             strokeWidth="1.2"
           />
           {/* S-curve path for the opposite half */}
           <path
             d="M12 2 A10 10 0 0 0 12 22 A5 5 0 0 0 12 12 A5 5 0 0 1 12 2"
-            className="fill-white dark:fill-slate-900"
+            className="fill-white dark:fill-black"
           />
           {/* Upper dot */}
-          <circle cx="12" cy="7" r="1.8" className="fill-slate-900 dark:fill-slate-100" />
+          <circle cx="12" cy="7" r="1.8" className="fill-slate-900 dark:fill-white" />
           {/* Lower dot */}
-          <circle cx="12" cy="17" r="1.8" className="fill-white dark:fill-slate-900" />
+          <circle cx="12" cy="17" r="1.8" className="fill-white dark:fill-black" />
         </svg>
       </button>
 
@@ -323,9 +323,9 @@ export const ThemeToggleButton: React.FC<{ className?: string }> = ({ className 
       <button
         type="button"
         onClick={() => setShowOptions((v) => !v)}
-        title="Configure Skiper26 Transition Style"
-        className={`w-6 h-6 rounded-md flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer ${
-          showOptions ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200' : ''
+        title="Transition Settings"
+        className={`w-6 h-6 rounded-md flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer ${
+          showOptions ? 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-white' : ''
         }`}
       >
         <Sliders className="w-3 h-3" />
@@ -339,20 +339,11 @@ export const ThemeToggleButton: React.FC<{ className?: string }> = ({ className 
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 450, damping: 32 }}
-            className="absolute right-0 top-full mt-2 w-72 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-[0_12px_36px_rgba(15,23,42,0.12)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.5)] z-50 p-4 space-y-3.5 text-xs font-sans"
+            className="absolute right-0 top-full mt-2 w-72 rounded-2xl bg-white dark:bg-[#09090B] border border-slate-200 dark:border-white/[0.12] shadow-[0_12px_36px_rgba(15,23,42,0.12)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.85)] z-50 p-4 space-y-3.5 text-xs font-sans"
           >
-            {/* Header */}
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800/80">
-              <div className="flex items-center gap-1.5 font-semibold text-slate-900 dark:text-slate-100">
-                <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                <span>Skiper 26 Transition</span>
-              </div>
-              <span className="text-[10px] font-mono text-slate-400 uppercase">View Transition API</span>
-            </div>
-
             {/* Variant Switcher */}
             <div className="space-y-1.5">
-              <span className="text-[10px] font-mono font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
+              <span className="text-[10px] font-mono font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider block">
                 Effect Variant
               </span>
               <div className="grid grid-cols-2 gap-1.5">
@@ -363,12 +354,12 @@ export const ThemeToggleButton: React.FC<{ className?: string }> = ({ className 
                     onClick={() => setVariant(v)}
                     className={`px-2.5 py-1.5 rounded-lg text-left text-xs font-mono font-medium flex items-center justify-between transition-all cursor-pointer ${
                       variant === v
-                        ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
-                        : 'bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 border border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        ? 'bg-blue-50 dark:bg-zinc-800 text-blue-700 dark:text-white border border-blue-200 dark:border-zinc-700 shadow-sm'
+                        : 'bg-slate-50 dark:bg-[#121215] text-slate-600 dark:text-zinc-400 border border-slate-200/60 dark:border-white/[0.06] hover:bg-slate-100 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-200'
                     }`}
                   >
                     <span>{v}</span>
-                    {variant === v && <Check className="w-3 h-3 text-blue-600 dark:text-blue-400" />}
+                    {variant === v && <Check className="w-3 h-3 text-blue-600 dark:text-white" />}
                   </button>
                 ))}
               </div>
@@ -376,7 +367,7 @@ export const ThemeToggleButton: React.FC<{ className?: string }> = ({ className 
 
             {/* Origin Start Position */}
             <div className="space-y-1.5">
-              <span className="text-[10px] font-mono font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
+              <span className="text-[10px] font-mono font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider block">
                 Origin Anchor
               </span>
               <div className="grid grid-cols-3 gap-1">
@@ -399,8 +390,8 @@ export const ThemeToggleButton: React.FC<{ className?: string }> = ({ className 
                     onClick={() => setStart(s)}
                     className={`px-1.5 py-1 rounded text-[10px] font-mono font-medium text-center truncate transition-all cursor-pointer ${
                       start === s
-                        ? 'bg-blue-600 text-white font-bold'
-                        : 'bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        ? 'bg-slate-900 dark:bg-white text-white dark:text-black font-bold'
+                        : 'bg-slate-50 dark:bg-[#121215] text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-200'
                     }`}
                   >
                     {s}
@@ -410,19 +401,19 @@ export const ThemeToggleButton: React.FC<{ className?: string }> = ({ className 
             </div>
 
             {/* Blur Mask Toggle */}
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
-              <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+            <div className="pt-2 border-t border-slate-100 dark:border-white/[0.08] flex items-center justify-between">
+              <span className="text-xs text-slate-600 dark:text-zinc-400 font-medium">
                 Edge Blur Diffusion
               </span>
               <button
                 type="button"
                 onClick={() => setBlur(!blur)}
                 className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                  blur ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'
+                  blur ? 'bg-blue-600 dark:bg-white' : 'bg-slate-200 dark:bg-zinc-800'
                 }`}
               >
                 <span
-                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white dark:bg-black shadow ring-0 transition duration-200 ease-in-out ${
                     blur ? 'translate-x-4' : 'translate-x-0'
                   }`}
                 />

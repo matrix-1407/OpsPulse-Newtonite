@@ -185,17 +185,17 @@ export const ConcurrencyStudioView: React.FC<ConcurrencyStudioViewProps> = ({
   return (
     <div className="max-w-[1400px] mx-auto px-6 py-8 space-y-8 font-sans transition-colors duration-200">
       {/* Studio Header & Sub-Mode Switcher */}
-      <div className="flex items-center justify-between flex-wrap gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
+      <div className="flex items-center justify-between flex-wrap gap-4 pb-4 border-b border-slate-200 dark:border-white/[0.08]">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-zinc-100 tracking-tight">
               Concurrency & Race Simulation Studio
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40">
               Interactive Invariant Lab
             </span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
             Simulate real-time distributed race conditions and verify PostgreSQL atomic locks and OCC conflict resolution.
           </p>
         </div>
@@ -219,9 +219,9 @@ export const ConcurrencyStudioView: React.FC<ConcurrencyStudioViewProps> = ({
       </div>
 
       {/* Target Work Item Ribbon */}
-      <div className="p-4 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-subtle flex items-center justify-between flex-wrap gap-4 text-xs font-mono">
+      <div className="p-4 rounded-xl bg-white dark:bg-[#09090B] border border-slate-200 dark:border-white/[0.08] shadow-subtle flex items-center justify-between flex-wrap gap-4 text-xs font-mono">
         <div className="flex items-center gap-3">
-          <span className="text-slate-400 dark:text-slate-500 font-semibold">TARGET WORK ITEM:</span>
+          <span className="text-slate-400 dark:text-zinc-500 font-semibold">TARGET WORK ITEM:</span>
           <select
             value={selectedItemId}
             onChange={(e) => {
@@ -229,7 +229,7 @@ export const ConcurrencyStudioView: React.FC<ConcurrencyStudioViewProps> = ({
               const found = workItems.find((w) => w.id === e.target.value);
               if (found) setCurrentItem(found);
             }}
-            className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-slate-900 dark:text-slate-100 font-mono text-xs focus:outline-none focus:border-blue-500 cursor-pointer"
+            className="bg-slate-50 dark:bg-black border border-slate-200 dark:border-white/[0.12] rounded-lg px-3 py-1.5 text-slate-900 dark:text-zinc-100 font-mono text-xs focus:outline-none focus:border-white/30 cursor-pointer"
           >
             {workItems.slice(0, 15).map((w) => (
               <option key={w.id} value={w.id}>
@@ -240,7 +240,7 @@ export const ConcurrencyStudioView: React.FC<ConcurrencyStudioViewProps> = ({
 
           <button
             onClick={reloadItem}
-            className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg bg-slate-100 dark:bg-[#141417] hover:bg-slate-200 dark:hover:bg-[#1E1E22] text-slate-700 dark:text-zinc-200 border border-slate-200 dark:border-white/[0.08] transition-colors cursor-pointer"
             title="Reload target item state"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -249,14 +249,14 @@ export const ConcurrencyStudioView: React.FC<ConcurrencyStudioViewProps> = ({
 
         {currentItem && (
           <div className="flex items-center gap-3">
-            <span className="text-slate-600 dark:text-slate-400 font-mono">
-              Live DB Version: <strong className="text-blue-600 dark:text-blue-400 font-bold">v{currentItem.version}</strong>
+            <span className="text-slate-600 dark:text-zinc-400 font-mono">
+              Live DB Version: <strong className="text-blue-600 dark:text-white font-bold">v{currentItem.version}</strong>
             </span>
-            <span className="text-slate-300 dark:text-slate-700">|</span>
+            <span className="text-slate-300 dark:text-zinc-700">|</span>
             <StatusBadge status={currentItem.status} size="sm" />
             <PriorityBadge priority={currentItem.priority} />
-            <span className="text-slate-500 dark:text-slate-400">
-              Assignee: <strong className="text-slate-800 dark:text-slate-200">{currentItem.assignee_id || 'None'}</strong>
+            <span className="text-slate-500 dark:text-zinc-400">
+              Assignee: <strong className="text-slate-800 dark:text-zinc-200">{currentItem.assignee_id || 'None'}</strong>
             </span>
           </div>
         )}
@@ -266,20 +266,20 @@ export const ConcurrencyStudioView: React.FC<ConcurrencyStudioViewProps> = ({
       {activeSubMode === 'occ' && (
         <div className="space-y-6">
           {/* Action Trigger Banner */}
-          <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 border border-blue-200/80 dark:border-blue-900/80 flex items-center justify-between flex-wrap gap-4">
+          <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-[#121215] dark:to-[#161619] border border-blue-200/80 dark:border-white/[0.08] flex items-center justify-between flex-wrap gap-4">
             <div>
-              <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+              <h3 className="font-bold text-slate-900 dark:text-zinc-100 text-sm">
                 Optimistic Concurrency Control Collision Test
               </h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-sans">
-                Both operators hold <code className="font-mono text-blue-700 dark:text-blue-400 font-bold">expected_version: v{currentItem?.version}</code>. Click the button to fire both edits simultaneously: the first commits, and the second triggers a clean 409 conflict.
+              <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5 font-sans">
+                Both operators hold <code className="font-mono text-blue-700 dark:text-zinc-200 font-bold">expected_version: v{currentItem?.version}</code>. Click the button to fire both edits simultaneously: the first commits, and the second triggers a clean 409 conflict.
               </p>
             </div>
             <button
               onClick={handleSimultaneousCollision}
-              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-white dark:hover:bg-zinc-200 dark:text-black text-white font-semibold text-xs transition-all shadow-sm flex items-center gap-2 cursor-pointer"
             >
-              <Zap className="w-4 h-4 text-white" />
+              <Zap className="w-4 h-4 text-white dark:text-black" />
               <span>Simulate Simultaneous Edit Collision</span>
             </button>
           </div>
@@ -287,17 +287,17 @@ export const ConcurrencyStudioView: React.FC<ConcurrencyStudioViewProps> = ({
           {/* Side-by-Side Operator Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Operator A Card */}
-            <div className="p-6 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-subtle space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="p-6 rounded-xl bg-white dark:bg-[#09090B] border border-slate-200 dark:border-white/[0.08] shadow-subtle space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/[0.08]">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold text-xs">
+                  <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-zinc-800 text-blue-700 dark:text-zinc-200 flex items-center justify-center font-bold text-xs">
                     {opA.name.charAt(0)}
                   </div>
                   <div>
-                    <span className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
+                    <span className="font-bold text-slate-900 dark:text-zinc-100 text-xs block">
                       {opA.name} (Operator 1)
                     </span>
-                    <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
+                    <span className="text-[10px] font-mono text-slate-400 dark:text-zinc-500">
                       {opA.id} &bull; expected_version: v{currentItem?.version}
                     </span>
                   </div>
@@ -308,7 +308,7 @@ export const ConcurrencyStudioView: React.FC<ConcurrencyStudioViewProps> = ({
                     const p = personas.find((x) => x.id === e.target.value);
                     if (p) setOpA(p);
                   }}
-                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md px-2 py-1 text-xs text-slate-700 dark:text-slate-200 font-sans cursor-pointer"
+                  className="bg-slate-50 dark:bg-black border border-slate-200 dark:border-white/[0.12] rounded-md px-2 py-1 text-xs text-slate-700 dark:text-zinc-200 font-sans cursor-pointer"
                 >
                   {personas.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -319,7 +319,7 @@ export const ConcurrencyStudioView: React.FC<ConcurrencyStudioViewProps> = ({
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">
+                <label className="text-xs font-medium text-slate-700 dark:text-zinc-300 block mb-1">
                   Draft Title Mutation
                 </label>
                 <input
@@ -327,7 +327,7 @@ export const ConcurrencyStudioView: React.FC<ConcurrencyStudioViewProps> = ({
                   value={opAEdit}
                   onChange={(e) => setOpAEdit(e.target.value)}
                   placeholder={`e.g. Patch Axis Gateway timeout config (${opA.name})`}
-                  className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 font-sans"
+                  className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-white/[0.12] rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 focus:outline-none focus:border-white/30 focus:bg-white dark:focus:bg-black font-sans"
                 />
               </div>
 
@@ -352,24 +352,24 @@ export const ConcurrencyStudioView: React.FC<ConcurrencyStudioViewProps> = ({
                     addLog(opA.name, `Rejected: HTTP ${apiErr.status_code} (${apiErr.code})`, 'conflict');
                   }
                 }}
-                className="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-all shadow-sm cursor-pointer"
+                className="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-white dark:hover:bg-zinc-200 dark:text-black text-white font-semibold text-xs transition-all shadow-sm cursor-pointer"
               >
                 Submit Edit as {opA.name} (Hold v{currentItem?.version})
               </button>
             </div>
 
             {/* Operator B Card */}
-            <div className="p-6 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-subtle space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="p-6 rounded-xl bg-white dark:bg-[#09090B] border border-slate-200 dark:border-white/[0.08] shadow-subtle space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/[0.08]">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-bold text-xs">
+                  <div className="w-7 h-7 rounded-full bg-indigo-100 dark:bg-zinc-800 text-indigo-700 dark:text-zinc-200 flex items-center justify-center font-bold text-xs">
                     {opB.name.charAt(0)}
                   </div>
                   <div>
-                    <span className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
+                    <span className="font-bold text-slate-900 dark:text-zinc-100 text-xs block">
                       {opB.name} (Operator 2)
                     </span>
-                    <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
+                    <span className="text-[10px] font-mono text-slate-400 dark:text-zinc-500">
                       {opB.id} &bull; expected_version: v{currentItem?.version}
                     </span>
                   </div>
@@ -380,7 +380,7 @@ export const ConcurrencyStudioView: React.FC<ConcurrencyStudioViewProps> = ({
                     const p = personas.find((x) => x.id === e.target.value);
                     if (p) setOpB(p);
                   }}
-                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md px-2 py-1 text-xs text-slate-700 dark:text-slate-200 font-sans cursor-pointer"
+                  className="bg-slate-50 dark:bg-black border border-slate-200 dark:border-white/[0.12] rounded-md px-2 py-1 text-xs text-slate-700 dark:text-zinc-200 font-sans cursor-pointer"
                 >
                   {personas.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -391,7 +391,7 @@ export const ConcurrencyStudioView: React.FC<ConcurrencyStudioViewProps> = ({
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">
+                <label className="text-xs font-medium text-slate-700 dark:text-zinc-300 block mb-1">
                   Draft Title Mutation
                 </label>
                 <input
@@ -399,7 +399,7 @@ export const ConcurrencyStudioView: React.FC<ConcurrencyStudioViewProps> = ({
                   value={opBEdit}
                   onChange={(e) => setOpBEdit(e.target.value)}
                   placeholder={`e.g. Escalate to Gateway Partner Lead (${opB.name})`}
-                  className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 font-sans"
+                  className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-white/[0.12] rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 focus:outline-none focus:border-white/30 focus:bg-white dark:focus:bg-black font-sans"
                 />
               </div>
 
@@ -433,7 +433,7 @@ export const ConcurrencyStudioView: React.FC<ConcurrencyStudioViewProps> = ({
                     }
                   }
                 }}
-                className="w-full py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition-all shadow-sm cursor-pointer"
+                className="w-full py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 dark:bg-white dark:hover:bg-zinc-200 dark:text-black text-white font-semibold text-xs transition-all shadow-sm cursor-pointer"
               >
                 Submit Edit as {opB.name} (Hold v{currentItem?.version})
               </button>
@@ -441,17 +441,17 @@ export const ConcurrencyStudioView: React.FC<ConcurrencyStudioViewProps> = ({
           </div>
 
           {/* Real-Time Studio Activity Log */}
-          <div className="p-4 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-subtle space-y-2">
-            <span className="text-[11px] font-mono font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
+          <div className="p-4 rounded-xl bg-white dark:bg-[#09090B] border border-slate-200 dark:border-white/[0.08] shadow-subtle space-y-2">
+            <span className="text-[11px] font-mono font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider block">
               Studio Real-Time Log
             </span>
             <div className="space-y-1.5 font-mono text-xs max-h-48 overflow-y-auto">
               {logMessages.length === 0 ? (
-                <div className="text-slate-400 dark:text-slate-500 italic">No events recorded. Click a simulation button above.</div>
+                <div className="text-slate-400 dark:text-zinc-600 italic">No events recorded. Click a simulation button above.</div>
               ) : (
                 logMessages.map((msg, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <span className="text-slate-400 dark:text-slate-500">[{msg.sender}]:</span>
+                    <span className="text-slate-400 dark:text-zinc-500">[{msg.sender}]:</span>
                     <span
                       className={
                         msg.type === 'success'
@@ -460,7 +460,7 @@ export const ConcurrencyStudioView: React.FC<ConcurrencyStudioViewProps> = ({
                           ? 'text-rose-700 dark:text-rose-400 font-semibold'
                           : msg.type === 'error'
                           ? 'text-rose-600 dark:text-rose-400'
-                          : 'text-slate-700 dark:text-slate-300'
+                          : 'text-slate-700 dark:text-zinc-300'
                       }
                     >
                       {msg.text}
@@ -476,12 +476,12 @@ export const ConcurrencyStudioView: React.FC<ConcurrencyStudioViewProps> = ({
       {/* Mode B: 5-Way Atomic Claim Race */}
       {activeSubMode === 'race' && (
         <div className="space-y-6">
-          <div className="p-5 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border border-amber-200 dark:border-amber-900/80 flex items-center justify-between flex-wrap gap-4">
+          <div className="p-5 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-[#141416] dark:to-[#18181B] border border-amber-200 dark:border-white/[0.08] flex items-center justify-between flex-wrap gap-4">
             <div>
-              <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+              <h3 className="font-bold text-slate-900 dark:text-zinc-100 text-sm">
                 5-Way Atomic Claim Race Simulation (SELECT FOR UPDATE)
               </h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-sans">
+              <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5 font-sans">
                 Fires 5 simultaneous claim requests across 5 operators in parallel (<code className="font-mono text-amber-800 dark:text-amber-300">Promise.all</code>). Row-level exclusive locks ensure exactly 1 winner.
               </p>
             </div>
@@ -498,28 +498,28 @@ export const ConcurrencyStudioView: React.FC<ConcurrencyStudioViewProps> = ({
           {/* Results Display */}
           {raceResults && (
             <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 flex items-center justify-between text-xs font-mono">
+              <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 flex items-center justify-between text-xs font-mono">
                 <div className="flex items-center gap-2.5">
                   <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
                   <div>
                     <span className="font-bold font-sans">
                       RACE CONDITION PREVENTED: EXACTLY 1 WINNER ACQUIRED ROW LOCK
                     </span>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 font-sans mt-0.5">
+                    <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans mt-0.5">
                       1 Operator acquired the exclusive row lock; 4 operators were blocked with HTTP 409 ALREADY_CLAIMED.
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <span className="font-bold block">Total Time: {raceTotalMs} ms</span>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400">5 parallel workers</span>
+                  <span className="text-[11px] text-slate-500 dark:text-zinc-400">5 parallel workers</span>
                 </div>
               </div>
 
               {/* 5 Animated Race Lanes */}
-              <div className="p-5 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-subtle">
+              <div className="p-5 rounded-xl bg-white dark:bg-[#09090B] border border-slate-200 dark:border-white/[0.08] shadow-subtle">
                 <div className="mb-3 flex items-center justify-between">
-                  <span className="text-[11px] font-mono font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  <span className="text-[11px] font-mono font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
                     Live Race Track — SELECT ... FOR UPDATE Contention
                   </span>
                 </div>

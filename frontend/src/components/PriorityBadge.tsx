@@ -21,13 +21,13 @@ export const PriorityBadge: React.FC<PriorityBadgeProps> = ({ priority }) => {
       );
     case 'MEDIUM':
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-sky-50 dark:bg-zinc-900 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-zinc-800">
           P2 MEDIUM
         </span>
       );
     case 'LOW':
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800">
           P3 LOW
         </span>
       );
