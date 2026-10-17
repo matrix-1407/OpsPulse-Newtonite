@@ -439,15 +439,15 @@ async def transition_work_item(
                 current_status = item["status"]
                 target_status = data.target_status.value
 
-                # Validate state machine graph
-                validate_transition(current_status, target_status)
-
-                # Enforce approval gatekeeper
+                # 1. Enforce approval gatekeeper FIRST when attempting to resolve
                 check_approval_gate(
                     requires_approval=item["requires_approval"],
                     approval_status=item["approval_status"],
                     target_status=target_status,
                 )
+
+                # 2. Validate state machine graph
+                validate_transition(current_status, target_status)
 
                 from_version = item["version"]
                 to_version = from_version + 1
@@ -541,15 +541,15 @@ async def approve_work_item(
                 if not item:
                     raise WorkItemNotFoundError(work_item_id=work_item_id)
 
-                # RBAC: Approver or Lead only
-                check_team_role(actor.team_roles, item["owning_team_id"], ["APPROVER", "LEAD"])
-
-                # Separation of Duties check
+                # 1. Separation of Duties check FIRST (assignee or creator cannot self-approve)
                 check_separation_of_duties(
                     actor_id=actor.user_id,
                     assignee_id=item["assignee_id"],
                     created_by_id=item["created_by_id"],
                 )
+
+                # 2. RBAC: Approver or Lead only
+                check_team_role(actor.team_roles, item["owning_team_id"], ["APPROVER", "LEAD"])
 
                 # OCC check
                 if item["version"] != data.expected_version:

@@ -257,7 +257,7 @@ export const WorkItemDrawer: React.FC<WorkItemDrawerProps> = ({
           ? ['PENDING_APPROVAL', 'BLOCKED']
           : ['RESOLVED', 'BLOCKED'];
       case 'PENDING_APPROVAL':
-        return ['APPROVED', 'INVESTIGATING', 'BLOCKED'];
+        return ['INVESTIGATING', 'BLOCKED'];
       case 'APPROVED':
         return ['RESOLVED', 'INVESTIGATING', 'BLOCKED'];
       case 'BLOCKED':
