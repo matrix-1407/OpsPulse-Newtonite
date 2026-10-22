@@ -11,7 +11,9 @@
 
 > **Newtonite Software Engineering Challenge: "Operations Under Pressure"**  
 > A high-concurrency, deterministic operational work-coordination engine engineered in Python 3.11+, FastAPI, and PostgreSQL 16.  
-> Implements zero-ORM parameterized SQL, atomic row-level locks, transactional outbox dispatching, and formal concurrency invariants.
+> Implements zero-ORM parameterized SQL, atomic row-level locks, transactional outbox dispatching, and formal concurrency invariants.  
+> 
+> 🧭 **Interactive Evaluator Guide:** Looking to test-drive the project? Read **[DEMO.md](file:///c:/Users/mrudu/Newtonite%20Assessment/newtonite-opspulse/DEMO.md)** for a step-by-step walkthrough of all 10 feature demos and discussion answers.
 
 ---
 
@@ -649,8 +651,9 @@ While OpsPulse satisfies and exceeds all challenge requirements, production ente
 
 ---
 
-## 8. Architectural Documentation
-For a deep-dive into all 15 architectural decisions, lock semantics, failure modes, and trade-offs, see [ENGINEERING_DECISIONS.md](file:///c:/Users/mrudu/Newtonite%20Assessment/newtonite-opspulse/ENGINEERING_DECISIONS.md).
+## 8. Documentation & Evaluation Resources
+- **[DEMO.md](file:///c:/Users/mrudu/Newtonite%20Assessment/newtonite-opspulse/DEMO.md):** Complete step-by-step interactive walkthrough testing all 10 features, race-condition simulators, and candidate brief discussion questions.
+- **[ENGINEERING_DECISIONS.md](file:///c:/Users/mrudu/Newtonite%20Assessment/newtonite-opspulse/ENGINEERING_DECISIONS.md):** Comprehensive deep-dive into all 15 architectural decisions, lock semantics, failure modes, and trade-offs.
 
 ---
 
